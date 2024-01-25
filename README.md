@@ -1,7 +1,7 @@
 # lite-tools 同名go包
 
-```text
 拉取包
+```bash
 go get -u github.com/Heartfilia/litetools
 ```
 
