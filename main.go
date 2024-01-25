@@ -8,8 +8,9 @@ import (
 func main() {
 	t := litetime.Time{
 		//Unit: "ms",
-		Fmt:    true,
-		Cursor: 10,
+		Fmt:        true,
+		Cursor:     -5,
+		CursorUnit: "H",
 	}
 	//fmt.Println(t.GetTime().Int())
 	//fmt.Println(t.GetTime().Float())

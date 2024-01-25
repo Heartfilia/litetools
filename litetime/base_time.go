@@ -7,11 +7,12 @@ import (
 )
 
 type Time struct {
-	Goal   interface{} // 基础数据类型 不传入 默认进行的是时间戳获取
-	Fmt    interface{} // 格式化样式 不传入 默认不操作
-	Unit   string      // 时间样式 s为秒 ms为毫秒
-	Cursor int         // 游标 默认为0  当前版本只兼容  >天<
-	Area   string      // 时区配置 不传入 默认配置到 Asia/Shanghai
+	Goal       interface{} // 基础数据类型 不传入 默认进行的是时间戳获取
+	Fmt        interface{} // 格式化样式 不传入 默认不操作
+	Unit       string      // 时间样式 s为秒 ms为毫秒
+	Cursor     int         // 游标 默认为0  当前版本只兼容
+	CursorUnit string      // 游标单位 默认 天d 还可以配置比天更小的单位 时H 分M 秒S
+	Area       string      // 时区配置 不传入 默认配置到 Asia/Shanghai
 }
 
 type Result struct {
@@ -33,6 +34,9 @@ func (t *Time) init() {
 		if err != nil {
 			return
 		}
+	}
+	if t.CursorUnit == "" {
+		t.CursorUnit = "d"
 	}
 	// 下面是interface版本 后续做更加精细兼容的时候再打开
 	//if t.Cursor == nil {
@@ -131,13 +135,23 @@ func (t *Time) fmtMode(r *Result) {
 	if t.Goal == nil {
 		// 如果没有传入的话 那么就是获得 当前时间的格式化时间 或者 添加了游标之后的格式化时间
 		// 1. 什么都没传  fmt样式也没有传的
+		var cursor int64
+		if t.CursorUnit == "S" {
+			cursor = 1
+		} else if t.CursorUnit == "M" {
+			cursor = 60
+		} else if t.CursorUnit == "H" {
+			cursor = 3600
+		} else {
+			cursor = 86400
+		}
 		switch t.Fmt.(type) {
 		case bool:
 			if t.Fmt.(bool) == true {
-				r.stringFmt = fmt_time.NowFmt(t.Cursor)
+				r.stringFmt = fmt_time.NowFmt(t.Cursor, cursor)
 			}
 		case string:
-			r.stringFmt = fmt_time.FmtType(t.Fmt.(string), t.Cursor)
+			r.stringFmt = fmt_time.FmtType(t.Fmt.(string), t.Cursor, cursor)
 		}
 
 	} else {

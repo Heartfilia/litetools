@@ -1,68 +1,54 @@
 package fmt_time
 
 import (
-	"fmt"
 	"strings"
 	"time"
 )
 
-const (
-	Y string = "2006"
-	y string = "06"
-	m string = "01"
-	d string = "02"
-	H string = "15"
-	M string = "04"
-	S string = "05"
-	a string = "Mon"
-	A string = "Monday"
-	b string = "Jan"
-	B string = "January"
-)
+var fmtMap = map[string]string{
+	// 暂时兼容这些
+	"%a":  "Mon",
+	"%A":  "Monday",
+	"%b":  "Jan",
+	"%B":  "January",
+	"%Y":  "2006",
+	"%y":  "06",
+	"%m":  "01",
+	"%d":  "02",
+	"%-d": "2",
+	"%H":  "15",
+	"%-H": "3",
+	"%M":  "04",
+	"%-M": "4",
+	"%S":  "05",
+	"%-S": "5",
+}
 
-func getFormat(format *string) {
-	for _, rule := range []string{"%Y", "%m", "%d", "%H", "%M", "%S"} {
-		compare := strings.Index(*format, rule)
+func getFormat(format string) string {
+	for rule, value := range fmtMap {
+		compare := strings.Index(format, rule)
 		if compare == -1 {
 			continue
 		}
-		var realTime string
-		switch rule {
-		case "%Y":
-			realTime = Y
-		case "%y":
-			realTime = y
-		case "%m":
-			realTime = m
-		case "%d":
-			realTime = d
-		case "%H":
-			realTime = H
-		case "%M":
-			realTime = M
-		case "%S":
-			realTime = S
-		}
-		if realTime != "" {
-			*format = strings.Replace(*format, rule, realTime, -1)
-		}
+		format = strings.Replace(format, rule, value, -1)
 	}
+	return format
 }
 
-func NowFmt(cursor int) string {
+func NowFmt(cursor int, cursorUnit int64) string {
 	// 第一种是直接获取当前时间的 格式化时间的
 	if cursor == 0 {
 		stringTime := time.Now().String()
 		return strings.Split(stringTime, ".")[0]
 	}
-	x := time.Unix(86400, 0)
-	fmt.Println(x)
+	// 这里需要对 时间 进行二次转换 然后再变成格式化时间
+	nowS := time.Now().Unix() + int64(cursor)*cursorUnit
 
-	return ""
+	return time.Unix(nowS, 0).Format(getFormat("%Y-%m-%d %H:%M:%S"))
 
 }
 
-func FmtType(fStr string, cursor int) string {
+func FmtType(fStr string, cursor int, cursorUnit int64) string {
 	// 这里是获取格式化时间的地方
 
 	return ""
