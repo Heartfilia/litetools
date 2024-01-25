@@ -12,8 +12,8 @@ go get -u github.com/Heartfilia/litetools
 package main
 
 import (
-	"fmt"
-	"github.com/Heartfilia/litetools/litetime"
+    "fmt"
+    "github.com/Heartfilia/litetools/litetime"
 )
 
 func main(){
