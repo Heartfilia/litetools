@@ -3,16 +3,18 @@ package litetime
 import (
 	"fmt"
 	"github.com/Heartfilia/litetools/litetime/fmt_time"
+	"regexp"
+	"strconv"
+	"strings"
 	"time"
 )
 
 type Time struct {
-	Goal       interface{} // 基础数据类型 不传入 默认进行的是时间戳获取
-	Fmt        interface{} // 格式化样式 不传入 默认不操作
-	Unit       string      // 时间样式 s为秒 ms为毫秒
-	Cursor     int         // 游标 默认为0  当前版本只兼容
-	CursorUnit string      // 游标单位 默认 天d 还可以配置比天更小的单位 时H 分M 秒S
-	Area       string      // 时区配置 不传入 默认配置到 Asia/Shanghai
+	Goal   interface{} // 基础数据类型 不传入 默认进行的是时间戳获取
+	Fmt    interface{} // 格式化样式 不传入 默认不操作
+	Unit   string      // 时间样式 s为秒 ms为毫秒
+	Cursor interface{} // 游标 默认为0 传入数字为天 支持的单位 d天 H小时 M分钟 S秒 可以组合传递 如： -1d12H 一天12小时前
+	Area   string      // 时区配置 不传入 默认配置到 Asia/Shanghai
 }
 
 type Result struct {
@@ -35,13 +37,9 @@ func (t *Time) init() {
 			return
 		}
 	}
-	if t.CursorUnit == "" {
-		t.CursorUnit = "d"
+	if t.Cursor == nil {
+		t.Cursor = 0
 	}
-	// 下面是interface版本 后续做更加精细兼容的时候再打开
-	//if t.Cursor == nil {
-	//	t.Cursor = 0
-	//}
 }
 
 // -------------------------------------
@@ -135,23 +133,39 @@ func (t *Time) fmtMode(r *Result) {
 	if t.Goal == nil {
 		// 如果没有传入的话 那么就是获得 当前时间的格式化时间 或者 添加了游标之后的格式化时间
 		// 1. 什么都没传  fmt样式也没有传的
-		var cursor int64
-		if t.CursorUnit == "S" {
-			cursor = 1
-		} else if t.CursorUnit == "M" {
-			cursor = 60
-		} else if t.CursorUnit == "H" {
-			cursor = 3600
-		} else {
-			cursor = 86400
+		var cursor string
+		switch t.Cursor.(type) {
+		case int:
+			cursor = fmt.Sprintf("%dh", t.Cursor.(int)*24)
+		case int64:
+			cursor = fmt.Sprintf("%dh", t.Cursor.(int64)*24)
+		case string:
+			cursor = strings.ToLower(t.Cursor.(string))
+			if strings.Contains(cursor, "d") {
+				// 如果包含了天这个参数 那么需要把天提取出来累加到 h 上面去
+				baseH := 0 // 默认的小时
+				hasH, _ := regexp.Match("\\d+h", []byte(cursor))
+				if hasH {
+					regH, _ := regexp.Compile("(\\d+)h")
+					baseHString := regH.FindStringSubmatch(cursor)
+					baseH, _ = strconv.Atoi(baseHString[1])
+					cursor = strings.Replace(cursor, baseHString[0], "", -1)
+				}
+				regD, _ := regexp.Compile("(\\d+)d")
+				baseDString := regD.FindStringSubmatch(cursor)
+				baseD, _ := strconv.Atoi(baseDString[1])
+				newHour := fmt.Sprintf("%dh", baseD*24+baseH)
+				cursor = strings.Replace(cursor, baseDString[0], newHour, -1)
+			}
 		}
+
 		switch t.Fmt.(type) {
 		case bool:
 			if t.Fmt.(bool) == true {
-				r.stringFmt = fmt_time.NowFmt(t.Cursor, cursor)
+				r.stringFmt = fmt_time.NowFmt(cursor)
 			}
 		case string:
-			r.stringFmt = fmt_time.FmtType(t.Fmt.(string), t.Cursor, cursor)
+			r.stringFmt = fmt_time.FmtType(t.Fmt.(string), cursor)
 		}
 
 	} else {
@@ -161,6 +175,17 @@ func (t *Time) fmtMode(r *Result) {
 }
 
 //------------- 主入口 -----------------
+
+func (t *Time) Default() {
+	/*
+		快速恢复成默认状态
+	*/
+	t.Goal = nil
+	t.Fmt = nil
+	t.Unit = "s"
+	t.Cursor = 0
+	t.Area = ""
+}
 
 func (t *Time) GetTime() *Result {
 	t.init()

@@ -14,14 +14,24 @@ var fmtMap = map[string]string{
 	"%Y":  "2006",
 	"%y":  "06",
 	"%m":  "01",
+	"%-m": "1",
 	"%d":  "02",
 	"%-d": "2",
 	"%H":  "15",
-	"%-H": "3",
+	"%h":  "3", // 这个不太确定
 	"%M":  "04",
 	"%-M": "4",
 	"%S":  "05",
 	"%-S": "5",
+	"%f":  "000",
+	//"%F":   "999",
+	"%.3f": "000",
+	"%.6f": "000000",
+	"%.9f": "000000000",
+	//"%Z":   "MST",
+	"%z":    "Z0700",  // +0800
+	"%-z":   "-07",    // +08
+	"%z:00": "Z07:00", // +08:00
 }
 
 func getFormat(format string) string {
@@ -35,20 +45,17 @@ func getFormat(format string) string {
 	return format
 }
 
-func NowFmt(cursor int, cursorUnit int64) string {
-	// 第一种是直接获取当前时间的 格式化时间的
-	if cursor == 0 {
-		stringTime := time.Now().String()
-		return strings.Split(stringTime, ".")[0]
+func NowFmt(cursor string) string {
+	nowS := time.Now()
+	if cursor != "0h" {
+		t, _ := time.ParseDuration(cursor)
+		nowS = nowS.Add(t)
 	}
-	// 这里需要对 时间 进行二次转换 然后再变成格式化时间
-	nowS := time.Now().Unix() + int64(cursor)*cursorUnit
-
-	return time.Unix(nowS, 0).Format(getFormat("%Y-%m-%d %H:%M:%S"))
+	return time.Unix(nowS.Unix(), 0).Format(getFormat("%Y-%m-%d %H:%M:%S"))
 
 }
 
-func FmtType(fStr string, cursor int, cursorUnit int64) string {
+func FmtType(fStr string, cursor string) string {
 	// 这里是获取格式化时间的地方
 
 	return ""
