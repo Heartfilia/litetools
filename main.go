@@ -7,17 +7,14 @@ import (
 
 func main() {
 	t := litetime.Time{
+		Goal: "2024-01-10 10:43:21",
 		//Unit: "ms",
-		Fmt:    true,
-		Cursor: "-24h",
+		//Fmt: "%Y-%m-%d %H:%M:%S",
+		//Cursor: "-2d10h",
 	}
-	//fmt.Println(t.GetTime().Int())
+	fmt.Println(t.GetTime().Int()) // 1704854601  1704883401
 	//fmt.Println(t.GetTime().Float())
-	fmt.Println(t.GetTime().String())
-
-	//stringTime = stringTime.Add(86400)
-	//newString := stringTime.Format("2006-01-02 15:04:05.000")
-	//fmt.Println(newString)
+	//fmt.Println(t.GetTime().String())
 
 	//fmt.Println(litestring.ColorString("<red>红色</red>还有其它颜色<cyan>其它颜色</cyan>还有一些错误测试<blue>错误的</yellow>", ""))
 	//fmt.Println(litestring.ColorString("整体替换颜色", "blue"))

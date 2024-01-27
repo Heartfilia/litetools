@@ -34,7 +34,7 @@ var fmtMap = map[string]string{
 	"%z:00": "Z07:00", // +08:00
 }
 
-func getFormat(format string) string {
+func GetFormat(format string) string {
 	for rule, value := range fmtMap {
 		compare := strings.Index(format, rule)
 		if compare == -1 {
@@ -45,18 +45,21 @@ func getFormat(format string) string {
 	return format
 }
 
-func NowFmt(cursor string) string {
+func nowFmt(cursor, formatSample string) string {
 	nowS := time.Now()
 	if cursor != "0h" {
 		t, _ := time.ParseDuration(cursor)
 		nowS = nowS.Add(t)
 	}
-	return time.Unix(nowS.Unix(), 0).Format(getFormat("%Y-%m-%d %H:%M:%S"))
+	//return time.Unix(nowS.Unix(), 0).Format(GetFormat(formatSample))
+	return nowS.Format(GetFormat(formatSample))
 
 }
 
 func FmtType(fStr string, cursor string) string {
 	// 这里是获取格式化时间的地方
-
-	return ""
+	if fStr == "" {
+		fStr = "%Y-%m-%d %H:%M:%S"
+	}
+	return nowFmt(cursor, fStr)
 }
