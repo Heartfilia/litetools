@@ -12,7 +12,7 @@ func main() {
 		//Fmt: "%Y-%m-%d %H:%M:%S",
 		//Cursor: "-2d10h",
 	}
-	fmt.Println(t.GetTime().Int()) // 1704854601  1704883401
+	fmt.Println(t.GetTime().Int())
 	//fmt.Println(t.GetTime().Float())
 	//fmt.Println(t.GetTime().String())
 

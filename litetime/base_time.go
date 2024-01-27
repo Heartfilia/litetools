@@ -35,10 +35,11 @@ func (t *Time) init() {
 		t.Unit = "s"
 	}
 	if t.Area == "" {
-		_, err := time.LoadLocation("Asia/Shanghai")
-		if err != nil {
-			return
-		}
+		//_, err := time.LoadLocation("Asia/Shanghai")
+		//if err != nil {
+		//	return
+		//}
+		t.Area = "Asia/Shanghai"
 	}
 	if t.Cursor == nil {
 		t.Cursor = 0
@@ -134,7 +135,6 @@ func stringGoal(goal, fmtString, unit, area string, r *Result) {
 		return
 	}
 	ts, err := time.ParseInLocation(golangFmt, goal, location)
-	fmt.Println(ts)
 	if err != nil {
 		r.err = err
 		return
@@ -148,7 +148,6 @@ func stringGoal(goal, fmtString, unit, area string, r *Result) {
 		tempTime := ts.UnixMicro()
 		r.floatS = float64(tempTime) / 1e6
 		r.intS = ts.Unix()
-		fmt.Println(ts.Unix())
 		r.resultString = "s"
 	}
 }
@@ -208,6 +207,7 @@ func withGoal(t *Time, r *Result) {
 		if t.Fmt == nil || fmtTemp == "" {
 			fmtTemp = defaultTime
 		}
+		fmt.Println(t.Area)
 		stringGoal(t.Goal.(string), fmtTemp, t.Unit, t.Area, r)
 	case int:
 		intGoal()
