@@ -207,7 +207,6 @@ func withGoal(t *Time, r *Result) {
 		if t.Fmt == nil || fmtTemp == "" {
 			fmtTemp = defaultTime
 		}
-		fmt.Println(t.Area)
 		stringGoal(t.Goal.(string), fmtTemp, t.Unit, t.Area, r)
 	case int:
 		intGoal()
