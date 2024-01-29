@@ -45,7 +45,7 @@ func GetFormat(format string) string {
 	return format
 }
 
-func nowFmt(cursor, formatSample string) string {
+func nowFmt(formatSample, cursor string) string {
 	nowS := time.Now()
 	if cursor != "0h" {
 		t, _ := time.ParseDuration(cursor)
@@ -61,5 +61,5 @@ func FmtType(fStr string, cursor string) string {
 	if fStr == "" {
 		fStr = "%Y-%m-%d %H:%M:%S"
 	}
-	return nowFmt(cursor, fStr)
+	return nowFmt(fStr, cursor)
 }

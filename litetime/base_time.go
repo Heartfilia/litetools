@@ -106,15 +106,20 @@ func (t *Time) unit(r *Result) {
 	//fmt.Println("2 ms:", time.Now().UnixMilli())
 	//fmt.Println("3 ns:", time.Now().UnixMicro())
 	//fmt.Println("4 ps:", time.Now().UnixNano())
+
+	cursor := parseCursor(t.Cursor)
+
 	if t.Unit == "ms" {
+		mis := cursorSecond(cursor, 1000)
 		tempTime := time.Now().UnixMicro()
-		r.floatMs = float64(tempTime) / 1000
-		r.intMs = time.Now().UnixMilli()
+		r.floatMs = float64(tempTime)/1000 + mis
+		r.intMs = time.Now().UnixMilli() + int64(mis)
 		r.resultString = "ms"
 	} else {
+		mis := cursorSecond(cursor, 1)
 		tempTime := time.Now().UnixMicro()
 		r.floatS = float64(tempTime) / 1e6
-		r.intS = time.Now().Unix()
+		r.intS = time.Now().Unix() + int64(mis)
 		r.resultString = "s"
 	}
 }
@@ -125,7 +130,7 @@ func (t *Time) number(r *Result) {
 	}
 }
 
-func stringGoal(goal, fmtString, unit, area string, r *Result) {
+func stringGoal(goal, fmtString, unit, area, cursor string, r *Result) {
 	// 传入了格式化时间 格式化的格式 获得转好的时间戳
 	r.stringFmt = goal
 	golangFmt := fmt_time.GetFormat(fmtString)
@@ -140,48 +145,71 @@ func stringGoal(goal, fmtString, unit, area string, r *Result) {
 		return
 	}
 	if unit == "ms" {
+		mis := cursorSecond(cursor, 1000)
 		tempTime := ts.UnixMicro()
-		r.floatMs = float64(tempTime) / 1000
-		r.intMs = ts.UnixMilli()
+		r.floatMs = float64(tempTime)/1000 + mis
+		r.intMs = ts.UnixMilli() + int64(mis)
 		r.resultString = "ms"
 	} else {
+		mis := cursorSecond(cursor, 1)
 		tempTime := ts.UnixMicro()
-		r.floatS = float64(tempTime) / 1e6
-		r.intS = ts.Unix()
+		r.floatS = float64(tempTime)/1e6 + mis
+		r.intS = ts.Unix() + int64(mis)
 		r.resultString = "s"
 	}
+	if cursor != "0h" {
+		t, _ := time.ParseDuration(cursor)
+		ts = ts.Add(t)
+		r.stringFmt = ts.Format(golangFmt)
+	}
+
 }
 
 func intGoal() {
 
 }
 
-func noGoal(t *Time, r *Result) {
-	var cursor string
-	switch t.Cursor.(type) {
+func cursorSecond(cursorString string, times int64) float64 {
+	if cursorString == "0h" {
+		return 0
+	}
+	t, _ := time.ParseDuration(cursorString)
+
+	return t.Seconds() * float64(times)
+}
+
+func parseCursor(cursor interface{}) string {
+	var resultCursor string
+	switch cursor.(type) {
 	case int:
-		cursor = fmt.Sprintf("%dh", t.Cursor.(int)*24)
+		resultCursor = fmt.Sprintf("%dh", cursor.(int)*24)
 	case int64:
-		cursor = fmt.Sprintf("%dh", t.Cursor.(int64)*24)
+		resultCursor = fmt.Sprintf("%dh", cursor.(int64)*24)
 	case string:
-		cursor = strings.ToLower(t.Cursor.(string))
-		if strings.Contains(cursor, "d") {
+		resultCursor = strings.ToLower(cursor.(string))
+		if strings.Contains(resultCursor, "d") {
 			// 如果包含了天这个参数 那么需要把天提取出来累加到 h 上面去
 			baseH := 0 // 默认的小时
-			hasH, _ := regexp.Match("\\d+h", []byte(cursor))
+			hasH, _ := regexp.Match("\\d+h", []byte(resultCursor))
 			if hasH {
 				regH, _ := regexp.Compile("(\\d+)h")
-				baseHString := regH.FindStringSubmatch(cursor)
+				baseHString := regH.FindStringSubmatch(resultCursor)
 				baseH, _ = strconv.Atoi(baseHString[1])
-				cursor = strings.Replace(cursor, baseHString[0], "", -1)
+				resultCursor = strings.Replace(resultCursor, baseHString[0], "", -1)
 			}
 			regD, _ := regexp.Compile("(\\d+)d")
-			baseDString := regD.FindStringSubmatch(cursor)
+			baseDString := regD.FindStringSubmatch(resultCursor)
 			baseD, _ := strconv.Atoi(baseDString[1])
 			newHour := fmt.Sprintf("%dh", baseD*24+baseH)
-			cursor = strings.Replace(cursor, baseDString[0], newHour, -1)
+			resultCursor = strings.Replace(resultCursor, baseDString[0], newHour, -1)
 		}
 	}
+	return resultCursor
+}
+
+func noGoal(t *Time, r *Result) {
+	var cursor string
+	cursor = parseCursor(t.Cursor)
 
 	switch t.Fmt.(type) {
 	case bool:
@@ -207,7 +235,8 @@ func withGoal(t *Time, r *Result) {
 		if t.Fmt == nil || fmtTemp == "" {
 			fmtTemp = defaultTime
 		}
-		stringGoal(t.Goal.(string), fmtTemp, t.Unit, t.Area, r)
+		cursor := parseCursor(t.Cursor)
+		stringGoal(t.Goal.(string), fmtTemp, t.Unit, t.Area, cursor, r)
 	case int:
 		intGoal()
 	case int64:
@@ -239,18 +268,18 @@ func (t *Time) Default() {
 	t.Fmt = nil
 	t.Unit = "s"
 	t.Cursor = 0
-	t.Area = ""
+	t.Area = "Asia/Shanghai"
 }
 
 func (t *Time) GetTime() *Result {
 	t.init()
-	r := Result{}
+	r := new(Result)
 	// 1 直接获取到时间的情况
 	if t.Fmt == nil && t.Goal == nil {
-		t.number(&r)
+		t.number(r)
 	} else {
-		t.fmtMode(&r)
+		t.fmtMode(r)
 	}
 
-	return &r
+	return r
 }
