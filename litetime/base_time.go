@@ -130,11 +130,14 @@ func (t *Time) number(r *Result) {
 	}
 }
 
-func stringGoal(goal, fmtString, unit, area, cursor string, r *Result) {
+func stringGoal(goal string, t *Time, r *Result) {
 	// 传入了格式化时间 格式化的格式 获得转好的时间戳
+	fmtString := getFmt(t.Fmt, false)
+	cursor := parseCursor(t.Cursor)
+
 	r.stringFmt = goal
 	golangFmt := fmt_time.GetFormat(fmtString)
-	location, err := time.LoadLocation(area)
+	location, err := time.LoadLocation(t.Area)
 	if err != nil {
 		r.err = err
 		return
@@ -144,7 +147,7 @@ func stringGoal(goal, fmtString, unit, area, cursor string, r *Result) {
 		r.err = err
 		return
 	}
-	if unit == "ms" {
+	if t.Unit == "ms" {
 		mis := cursorSecond(cursor, 1000)
 		tempTime := ts.UnixMicro()
 		r.floatMs = float64(tempTime)/1000 + mis
@@ -165,8 +168,40 @@ func stringGoal(goal, fmtString, unit, area, cursor string, r *Result) {
 
 }
 
-func intGoal() {
+func intGoal(goal int64, t *Time, r *Result) {
+	fmtTemp := getFmt(t.Fmt, true)
+	cursor := parseCursor(t.Cursor)
+	if 1e9 <= goal && goal < 1e10 {
+		//
+		mis := cursorSecond(cursor, 1)
+		r.intS = goal + int64(mis)
+		r.intMs = goal*1000 + int64(mis)
+	} else if 1e12 <= goal && goal < 1e13 {
+		mis := cursorSecond(cursor, 1000)
+		r.intMs = goal + int64(mis)
+		r.intS = goal/1000 + int64(mis)
+	} else {
+		panic("只能处理秒或者毫秒级别的数据\npanic: only handle 'm' or 'ms'")
+	}
 
+	if fmtTemp == "" {
+		// 如果是没有格式化时间的情况
+		if t.Unit == "ms" {
+			r.stringFmt = fmt.Sprintf("%d", r.intMs)
+		} else {
+			r.stringFmt = fmt.Sprintf("%d", r.intS)
+		}
+	} else {
+		golangFmt := fmt_time.GetFormat(fmtTemp)
+		var ts time.Time
+		if t.Unit == "ms" {
+			ts = time.Unix(r.intMs/1000, 0)
+		} else {
+			ts = time.Unix(r.intS, 0)
+		}
+		r.stringFmt = ts.Format(golangFmt)
+
+	}
 }
 
 func cursorSecond(cursorString string, times int64) float64 {
@@ -207,6 +242,25 @@ func parseCursor(cursor interface{}) string {
 	return resultCursor
 }
 
+func falseFmt(t *Time, r *Result) {
+	var cursor string
+	cursor = parseCursor(t.Cursor)
+	if t.Unit == "ms" {
+		mis := cursorSecond(cursor, 1000)
+		tempTime := time.Now().UnixMicro()
+		r.floatMs = float64(tempTime)/1000 + mis
+		r.intMs = time.Now().UnixMilli() + int64(mis)
+		r.stringFmt = fmt.Sprintf("%d", r.intMs)
+	} else {
+		mis := cursorSecond(cursor, 1)
+		tempTime := time.Now().UnixMilli()
+		r.floatS = float64(tempTime)/1000 + mis
+		r.intS = time.Now().Unix() + int64(mis)
+		r.stringFmt = fmt.Sprintf("%d", r.intS)
+	}
+	r.resultString = t.Unit
+}
+
 func noGoal(t *Time, r *Result) {
 	var cursor string
 	cursor = parseCursor(t.Cursor)
@@ -215,32 +269,41 @@ func noGoal(t *Time, r *Result) {
 	case bool:
 		if t.Fmt.(bool) == true {
 			r.stringFmt = fmt_time.FmtType("", cursor)
+		} else {
+			falseFmt(t, r)
 		}
 	case string:
 		r.stringFmt = fmt_time.FmtType(t.Fmt.(string), cursor)
 	}
 }
 
+func getFmt(_fmt interface{}, noFmt bool) string {
+	var fmtTemp string
+	switch _fmt.(type) {
+	case bool:
+		if _fmt.(bool) == true {
+			fmtTemp = defaultTime
+		}
+	case string:
+		fmtTemp = _fmt.(string)
+	}
+	if (_fmt == nil || fmtTemp == "") && !noFmt {
+		fmtTemp = defaultTime
+	}
+	return fmtTemp
+}
+
 func withGoal(t *Time, r *Result) {
 	switch t.Goal.(type) {
 	case string:
 		// 如果goal是字符串相关的
-		var fmtTemp string
-		switch t.Fmt.(type) {
-		case bool:
-			fmtTemp = defaultTime
-		case string:
-			fmtTemp = t.Fmt.(string)
-		}
-		if t.Fmt == nil || fmtTemp == "" {
-			fmtTemp = defaultTime
-		}
-		cursor := parseCursor(t.Cursor)
-		stringGoal(t.Goal.(string), fmtTemp, t.Unit, t.Area, cursor, r)
+		stringGoal(t.Goal.(string), t, r)
+	case float64:
+		intGoal(int64(t.Goal.(float64)), t, r)
 	case int:
-		intGoal()
+		intGoal(int64(t.Goal.(int)), t, r)
 	case int64:
-		intGoal()
+		intGoal(t.Goal.(int64), t, r)
 	}
 	// 如果goal是数字相关的
 

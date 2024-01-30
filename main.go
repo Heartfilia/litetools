@@ -7,10 +7,9 @@ import (
 
 func main() {
 	t := litetime.Time{
-		Goal:   "2024-01-10 10:43:21",
-		Unit:   "ms",
-		Fmt:    "%Y-%m-%d %H:%M:%S",
-		Cursor: "-1d",
+		//Unit: "ms",
+		//Fmt: true,
+		//Cursor: -10,
 	}
 	fmt.Println(t.GetTime().Int()) // 1704854601
 	//fmt.Println(t.GetTime().Float())
