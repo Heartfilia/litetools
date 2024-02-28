@@ -6,8 +6,8 @@ import (
 )
 
 func main() {
-	fmt.Println(litenet.GetWAN())
-	fmt.Println(litenet.GetWAN())
+	fmt.Println(litenet.GetLAN())
+	//fmt.Println(litenet.GetWAN())
 	//fmt.Println(litenet.GetUA())
 	//fmt.Println(litenet.GetUA("mac", "ios", "pc", "linux", "windows", "chrome"))
 	//t := litetime.Time{
