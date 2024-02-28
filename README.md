@@ -17,6 +17,7 @@ import (
 )
 
 func main(){
+	defer litetime.Timer("main")()   // 用于统计该函数运行耗时
     t := litetime.Time{
         //Goal: "2024-01-10 10:43:21", // 如果不传 所有操作基于当前时间 传了字符串 那么基于字符串所示时间处理 不过字符串得对应下面的格式化样式
         // 如果传入了时间戳 基于时间戳处理
@@ -81,4 +82,26 @@ func main(){
     fmt.Println(litestring.ColorString("整体替换颜色", "blue"))
     fmt.Println(litestring.ColorString("整体替换颜色", "黄"))
 }
+```
+
+
+### net
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/Heartfilia/litetools/litenet"
+)
+
+func main() {
+	fmt.Println(litenet.GetUA()) // 不输入默认chrome
+	fmt.Println(litenet.GetUA("safari")) // 指定浏览器 或者系统
+	fmt.Println(litenet.GetUA("safari", "chrome", "linux")) // 从给定的参数里面随机
+	
+	fmt.Println(litenet.GetWAN())  // 还没弄 后续会调整用法
+	fmt.Println(litenet.GetLAN())  // 还没弄 后续会调整用法
+}
+
+
 ```
