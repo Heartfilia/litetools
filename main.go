@@ -1,14 +1,9 @@
 package main
 
-import (
-	"fmt"
-	"os"
-)
+import "github.com/Heartfilia/litetools/utils/litedir"
 
 func main() {
-	fmt.Println(os.UserConfigDir())
-	fmt.Println(os.UserHomeDir())
-	fmt.Println(os.UserCacheDir())
+	litedir.LiteDir()
 	//fmt.Println(litenet.GetLAN())
 	//fmt.Println(litenet.GetWAN())
 	//fmt.Println(litenet.GetUA())

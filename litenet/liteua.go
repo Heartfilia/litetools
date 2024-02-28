@@ -9,7 +9,7 @@ import (
 func GetUA(options ...string) string {
 	var platform string
 	if options == nil {
-		platform = "chrome"
+		platform = ua.DefaultChoice
 	} else {
 		if len(options) == 1 {
 			platform = options[0]
