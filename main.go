@@ -2,11 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/Heartfilia/litetools/litenet"
+	"os"
 )
 
 func main() {
-	fmt.Println(litenet.GetLAN())
+	fmt.Println(os.UserConfigDir())
+	fmt.Println(os.UserHomeDir())
+	fmt.Println(os.UserCacheDir())
+	//fmt.Println(litenet.GetLAN())
 	//fmt.Println(litenet.GetWAN())
 	//fmt.Println(litenet.GetUA())
 	//fmt.Println(litenet.GetUA("mac", "ios", "pc", "linux", "windows", "chrome"))
