@@ -1,9 +1,10 @@
 package main
 
-import "github.com/Heartfilia/litetools/utils/litedir"
+import "github.com/Heartfilia/litetools/litenet/ua"
 
 func main() {
-	litedir.LiteDir()
+	//fmt.Println(litedir.LiteDir())
+	ua.ConfigFromCache()
 	//fmt.Println(litenet.GetLAN())
 	//fmt.Println(litenet.GetWAN())
 	//fmt.Println(litenet.GetUA())
