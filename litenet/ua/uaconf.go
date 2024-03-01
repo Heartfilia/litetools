@@ -1,9 +1,9 @@
 package ua
 
 import (
-	"encoding/json"
 	"github.com/Heartfilia/litetools/litenet/request"
 	"github.com/Heartfilia/litetools/utils/litedir"
+	"github.com/Heartfilia/litetools/utils/types"
 	"os"
 	"path"
 )
@@ -22,7 +22,7 @@ var UATemplateBrowser = map[string]string{
 	"safari":  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/%s Safari/605.1.15",
 }
 
-var DefaultSetting = map[string][]string{
+var defaultSetting = map[string][]string{
 	"chromium": {
 		"70.0.3538.16", "70.0.3538.67", "70.0.3538.97",
 		"71.0.3578.137", "71.0.3578.30", "71.0.3578.33", "71.0.3578.80",
@@ -78,7 +78,23 @@ var DefaultSetting = map[string][]string{
 		"120", "121", "122", "123", "124", "125", "126", "127", "128", "129",
 	},
 }
-var requestJson = ""
+var DefaultSetting types.ConfigJson
+
+func sureLocal(configJson string) bool {
+	// 确保本地有缓存记录
+	if litedir.FileExists(configJson) {
+		return true //存在返回存在的状态
+	}
+	// 不存在这里下载
+	// 缓存在这里 后续直接用
+	// https://googlechromelabs.github.io/chrome-for-testing/known-good-versions.json
+	requestJson := request.DoGet("http://static.litetools.top/source/json/useragent.json")
+	if requestJson == "" || !litedir.FileExists(configJson) {
+		// 这里下载失败 直接返回false
+		return false
+	}
+	return true
+}
 
 func ConfigFromCache() map[string][]string {
 	baseDir := litedir.LiteDir()
@@ -87,35 +103,11 @@ func ConfigFromCache() map[string][]string {
 		_ = os.Mkdir(browserDir, 0777)
 	}
 	configJson := path.Join(browserDir, "config.json")
-	var result map[string][]string
-	if !litedir.FileExists(configJson) {
-		// 如果不存在 那么就联网下载到本地
-		if requestJson == "" {
-			// 缓存在这里 后续直接用
-			// https://googlechromelabs.github.io/chrome-for-testing/known-good-versions.json
-			requestJson = request.DoGet("http://static.litetools.top/source/json/useragent.json")
-		}
-
-		if requestJson != "" {
-			// 下载成功 先缓存到本地
-			litedir.FileSaver(requestJson, configJson)
-			err := json.Unmarshal([]byte(requestJson), &result)
-			if err != nil {
-				result = DefaultSetting
-			}
-		}
-
+	local := sureLocal(configJson)
+	if !local {
+		// 如果本地没有 那么要做处理
 	} else {
-		// 如果有 那么就读取本地记录
-		tempResult := litedir.FileJsonLoader(configJson)
-		if tempResult != nil {
-			result = tempResult
-		}
+		// 本地有 然后也做对应的处理
 	}
-
-	if result != nil {
-		return result
-	}
-
-	return DefaultSetting
+	return nil
 }

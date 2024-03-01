@@ -2,6 +2,7 @@ package litedir
 
 import (
 	"encoding/json"
+	"github.com/Heartfilia/litetools/utils/types"
 	"os"
 )
 
@@ -46,18 +47,18 @@ func fileRead(filePath string) []byte {
 	return file
 }
 
-func FileJsonLoader(jsonPath string) map[string][]string {
+func FileJsonLoader(jsonPath string) types.ConfigJson {
 	if !FileExists(jsonPath) {
-		return nil
+		return types.ConfigJson{}
 	}
-	var data map[string][]string
+	var data types.ConfigJson
 	file := fileRead(jsonPath)
 	if file == nil {
-		return nil
+		return types.ConfigJson{}
 	}
 	err := json.Unmarshal(file, &data)
 	if err != nil {
-		return nil
+		return types.ConfigJson{}
 	}
 	return data
 }
