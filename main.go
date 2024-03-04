@@ -1,15 +1,9 @@
 package main
 
-import (
-	"fmt"
-	"github.com/Heartfilia/litetools/literand"
-)
+import "github.com/Heartfilia/litetools/litenet/ua"
 
 func main() {
-	num := literand.RandomChoice([]int{1, 2, 3, 4, 5, 6, 7})
-	fmt.Printf("%T %v\n", num, num)
-	str := literand.RandomChoice([]string{"a", "b", "c", "d"})
-	fmt.Printf("%T %v\n", str, str)
+	ua.ConfigFromCache()
 	//fmt.Println(litedir.LiteDir())
 	//fmt.Println(litedir.FileJsonLoader("/Users/lodge/Library/Caches/lite-tools/browser/config.json"))
 	//fmt.Println(litenet.GetLAN())

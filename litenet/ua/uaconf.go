@@ -1,6 +1,7 @@
 package ua
 
 import (
+	"encoding/json"
 	"github.com/Heartfilia/litetools/litenet/request"
 	"github.com/Heartfilia/litetools/utils/litedir"
 	"github.com/Heartfilia/litetools/utils/types"
@@ -22,8 +23,8 @@ var UATemplateBrowser = map[string]string{
 	"safari":  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/%s Safari/605.1.15",
 }
 
-var defaultSetting = map[string][]string{
-	"chromium": {
+var DefaultSetting = types.ConfigJson{
+	Chromium: []string{
 		"70.0.3538.16", "70.0.3538.67", "70.0.3538.97",
 		"71.0.3578.137", "71.0.3578.30", "71.0.3578.33", "71.0.3578.80",
 		"72.0.3626.69", "72.0.3626.7",
@@ -69,7 +70,7 @@ var defaultSetting = map[string][]string{
 		"113.0.5672.24", "113.0.5672.63",
 		"114.0.5735.16",
 	},
-	"firefox": {
+	Firefox: []string{
 		"70", "71", "72", "73", "74", "75", "76", "77", "78", "79",
 		"80", "81", "82", "83", "84", "85", "86", "87", "88", "89",
 		"90", "91", "92", "93", "94", "95", "96", "97", "98", "99",
@@ -77,8 +78,8 @@ var defaultSetting = map[string][]string{
 		"110", "111", "112", "113", "114", "115", "116", "117", "118", "119",
 		"120", "121", "122", "123", "124", "125", "126", "127", "128", "129",
 	},
+	Safari: []string{"10.15.7", "12.1.2", "13.1.1", "14.1.2"},
 }
-var DefaultSetting types.ConfigJson
 
 func sureLocal(configJson string) bool {
 	// 确保本地有缓存记录
@@ -96,7 +97,20 @@ func sureLocal(configJson string) bool {
 	return true
 }
 
-func ConfigFromCache() map[string][]string {
+func readFromLocal(configJson string) types.ConfigJson {
+	file, err := os.ReadFile(configJson)
+	if err != nil {
+		return types.ConfigJson{}
+	}
+	var res types.ConfigJson
+	err = json.Unmarshal(file, &res)
+	if err != nil {
+		return types.ConfigJson{}
+	}
+	return res
+}
+
+func ConfigFromCache() types.ConfigJson {
 	baseDir := litedir.LiteDir()
 	browserDir := path.Join(baseDir, "browser")
 	if !litedir.FileExists(browserDir) {
@@ -104,10 +118,16 @@ func ConfigFromCache() map[string][]string {
 	}
 	configJson := path.Join(browserDir, "config.json")
 	local := sureLocal(configJson)
-	if !local {
-		// 如果本地没有 那么要做处理
-	} else {
+	if local {
 		// 本地有 然后也做对应的处理
+		res := readFromLocal(configJson)
+		if !res.IsEmpty() {
+			return res
+		}
 	}
-	return nil
+	return DefaultSetting
+}
+
+func CombineString(osVersion, platform, version string) string {
+	return ""
 }
