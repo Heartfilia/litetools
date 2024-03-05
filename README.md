@@ -105,3 +105,23 @@ func main() {
 
 
 ```
+
+### rand
+```go
+import (
+	"fmt"
+	"github.com/Heartfilia/litetools/literand"
+)
+
+func main(){
+	fmt.Println(literand.RandomChoice([]string{"a", "b", "c"}))
+	fmt.Println(literand.RandomChoice([]int64{1, 2, 3}))
+	fmt.Println(literand.RandomChoice([]float64{1.123, 2.223, 3.333}))
+}
+```
+
+### parser
+```go
+// 还在开发中
+
+```
