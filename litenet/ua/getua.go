@@ -12,8 +12,8 @@ type makeChoice struct {
 	UA      string
 }
 
-func (m *makeChoice) choice() {
-
+func (m *makeChoice) choice() string {
+	return CombineString(m.OsType, m.Browser)
 }
 
 func isBrowser(option string) bool {
@@ -56,10 +56,17 @@ func Options(option string) string {
 			mc.OsType = "mac"
 		}
 	} else if isSystem(option) {
+		mc.Browser = literand.RandomChoice([]string{"chrome", "edge"})
 		if option == "pc" {
 			mc.OsType = literand.RandomChoice([]string{"win", "mac", "linux"})
+			if mc.OsType == "mac" {
+				mc.Browser = literand.RandomChoice([]string{"chrome", "edge", "safari"})
+			}
 		} else if option == "mobile" {
 			mc.OsType = literand.RandomChoice([]string{"android", "ios", "harmonyos"})
+			if mc.OsType == "harmonyos" {
+				mc.OsType = "harmony"
+			}
 		} else if option == "win" || option == "windows" {
 			mc.OsType = "win"
 		} else if option == "mac" || option == "macos" {
@@ -71,7 +78,8 @@ func Options(option string) string {
 		}
 	} else {
 		// 否则直接从浏览器里面随机挑返回
-
+		mc.OsType = literand.RandomChoice([]string{"win", "mac", "linux"})
+		mc.Browser = literand.RandomChoice([]string{"chrome", "firefox", "edge"})
 	}
-	return option
+	return mc.choice()
 }
