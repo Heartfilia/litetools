@@ -221,10 +221,6 @@ func CombineString(platform, browser string) string {
 		tailStringWithVersion += " Chrome/" + chromeVersion
 	}
 
-	if platform == "android" || platform == "ios" || platform == "harmony" {
-		tailStringWithVersion += " Mobile"
-	}
-
 	otherPlug := "Safari/537.36"
 	if platform == "mac" && browser != "firefox" {
 		otherPlug = literand.RandomChoice([]string{"Safari/537.36", "Safari/605.1.15", "Safari/604.3.5"})
@@ -232,6 +228,11 @@ func CombineString(platform, browser string) string {
 		otherPlug = "Firefox/" + literand.RandomChoice(version.Firefox)
 		tailStringWithVersion = ""
 	}
+
+	if platform == "android" || platform == "ios" || platform == "harmony" {
+		tailStringWithVersion += " Mobile"
+	}
+
 	if !operaOld && browser == "opera" {
 		otherPlug += " OPR/" + chromeVersion
 	} else if browser == "opera" {
