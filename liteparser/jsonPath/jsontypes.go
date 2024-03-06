@@ -35,7 +35,7 @@ func (r *Result) SetString(str string) {
 	r.resultString = str
 }
 
-type sReplace string
+//type sReplace string
 
 func replaceTo(str string, mode int) string {
 	if mode == 1 {
@@ -66,6 +66,7 @@ type resultCache struct {
 	BaseAny any            // 把用json提取的Base放到这里
 	Array   []any          // 如果下一段是 任意类型数组
 	Object  map[string]any // 如果下一段是任意类型的map对象
+	OK      bool           // 是否是最终结果
 }
 
 type regexRule struct {
