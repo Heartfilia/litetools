@@ -70,15 +70,16 @@ type resultCache struct {
 }
 
 type regexRule struct {
-	OnlyArray *regexp.Regexp // [0]
-	OnlyKey   *regexp.Regexp // a
-	KeyArray  *regexp.Regexp // a[0]
+	OnlyArray     *regexp.Regexp // [0]
+	OnlyKey       *regexp.Regexp // a
+	KeyArray      *regexp.Regexp // a[0]
+	SplitKeyArray *regexp.Regexp // a [0] [1] 拆分这个
 	// 不支持的格式 [0]b  --> not support
 }
 
 func (r *regexRule) isEmpty() bool {
 	// 判断是否为未初始化的数据结构
-	if r.OnlyArray == nil || r.OnlyKey == nil || r.KeyArray == nil {
+	if r.OnlyArray == nil || r.OnlyKey == nil || r.KeyArray == nil || r.SplitKeyArray == nil {
 		return true
 	}
 	return false
@@ -97,26 +98,44 @@ func (r *regexRule) keyWithArray(rule string) bool {
 
 var regRuleCache regexRule
 
-func (r *resultCache) parse(rule string) {
+func clearArray(rule *string, array []string) {
+	// 避免出现 a[bc.c[1]
+	for _, item := range array {
+		*rule = strings.ReplaceAll(*rule, item, "")
+	}
+}
+
+func (r *resultCache) parse(rule string, lastKey bool) {
 	if regRuleCache.isEmpty() {
 		// 如果是没有初始化的情况下 需要初始化内部的参数
 		regRuleCache.OnlyArray = regexp.MustCompile("^\\[\\d+]$")
 		regRuleCache.OnlyKey = regexp.MustCompile("^[^[]+")
 		regRuleCache.KeyArray = regexp.MustCompile(".+\\[\\d+]$")
+		regRuleCache.SplitKeyArray = regexp.MustCompile("\\[\\d+]")
 	}
 
 	if regRuleCache.onlyArray(rule) {
 		// 如果当前目标key是 [0]  那么预期当前节点能获取到的key样式应该是 []any
-		fmt.Println("当前格式是 onlyArray   :", rule)
+		fmt.Println("当前格式是 onlyArray   :", rule, lastKey)
 	} else if regRuleCache.keyWithArray(rule) {
-		// 如果当前目标key是 a[0] 那么预期当前节点能获取到的样式应该是 map[string]any  需要拆分然后继续处理一次
-		fmt.Println("当前格式是 keyWithArray:", rule)
-
+		// 如果当前目标key是 a[0]   a[1][2] 那么预期当前节点能获取到的样式应该是 map[string]any  需要拆分然后继续处理一次
+		//fmt.Println("当前格式是 keyWithArray:", rule)
+		items := regRuleCache.SplitKeyArray.FindAllString(rule, -1)
+		clearArray(&rule, items) // 清理掉每个数组
+		r.parse(rule, false)
+		lastKeyInd := false
+		for ind, item := range items {
+			if lastKey && ind == len(items)-1 {
+				lastKeyInd = true
+			}
+			lastKeyInd = lastKeyInd && lastKey // 要是最后一个 并且是最后一个格子
+			r.parse(item, lastKeyInd)
+		}
 	} else if regRuleCache.onlyKey(rule) {
 		// 如果当前目标key是 a    那么预期当前节点能获取到的样式应该是 map[string]any
-		fmt.Println("当前格式是 onlyKey     :", rule)
+		fmt.Println("当前格式是 onlyKey     :", rule, lastKey)
 	} else {
-		log.Fatal("m没有匹配到的格式是:", rule)
+		log.Fatal("m没有匹配到的格式是:", rule, lastKey)
 	}
 
 }
@@ -144,8 +163,12 @@ func parseRule(jsonString, rule string) {
 
 	rule = replaceTo(rule, 0) // 恢复成正常的rule格式
 	eachBlock := strings.Split(rule, ".")
-	for _, each := range eachBlock {
-		js.parse(each)
+	lastKey := false
+	for ind, each := range eachBlock {
+		if ind == len(eachBlock)-1 {
+			lastKey = true // 如果是最后一个key 那么筛选情况可能不一样
+		}
+		js.parse(each, lastKey)
 	}
 }
 

@@ -3,8 +3,8 @@ package main
 import "github.com/Heartfilia/litetools/liteparser"
 
 func main() {
-	_, err := liteparser.TryGet(`{"a":{"b":[1,2,3]}}`, "a.b[0].[1]")
-	_, err = liteparser.TryGet(`{"a":{"b":[1,2,3]}}`, "a.b[0].c")
+	_, err := liteparser.TryGet(`{"a":{"b":[1,2,3]}}`, "a.b[0][1].c[2]")
+	//_, err = liteparser.TryGet(`{"a":{"b":[1,2,3]}}`, "a.b[0].c")
 	if err != nil {
 		return
 	}
