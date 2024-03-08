@@ -335,7 +335,7 @@ func (t *Time) Default() {
 }
 
 func (t *Time) GetTime() *Result {
-	t.init()
+	t.initTime()
 	r := new(Result)
 	// 1 直接获取到时间的情况
 	if t.Fmt == nil && t.Goal == nil {

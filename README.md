@@ -120,8 +120,15 @@ func main(){
 }
 ```
 
-### parser
+### json
 ```go
-// 还在开发中
+import (
+    "fmt"
+    "github.com/Heartfilia/litetools/litejson"
+)
+
+func main(){
+    fmt.Println(litejson.TrgGet(`jsonStringHere`, "ruleHere"))
+}
 
 ```

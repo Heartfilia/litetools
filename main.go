@@ -1,13 +1,23 @@
 package main
 
-import "github.com/Heartfilia/litetools/liteparser"
+import (
+	"fmt"
+	"github.com/Heartfilia/litetools/litejson"
+)
 
 func main() {
-	_, err := liteparser.TryGet(`{"a":{"b":[1,2,3]}}`, "a.b[0][1].c[2]")
-	//_, err = liteparser.TryGet(`{"a":{"b":[1,2,3]}}`, "a.b[0].c")
-	if err != nil {
-		return
-	}
+	value := litejson.TryGet(`{"a":{"b":[{"c":[0,1,2],"d":["x","y","z"]}]}}`, "a.b[1].d[-1]")
+	fmt.Printf("%T, %v\n", value.Value, value.Value)
+	fmt.Println(value.Error)
+	value = litejson.TryGet(`{"a":{"b":[{"c":[0,1,2]},{"d":["x","y","z"]}]}}`, "a.b[0].d[-1]")
+	fmt.Printf("%T, %v\n", value.Value, value.Int())
+	fmt.Println(value.Error)
+	value = litejson.TryGet(`"a":[]`, "a.b[0].d[-1]")
+	fmt.Printf("%T, %v\n", value.Value, value.String())
+	fmt.Println(value.Error)
+	value = litejson.TryGet(`{"a":{"b":[{"c":[4,5,6],"d":["x","y","z"]}]}}`, "a.b[0].c[-1]")
+	fmt.Printf("%T, %v\n", value.Value, value.Int())
+	fmt.Println(value.Error)
 	//fmt.Println(litedir.LiteDir())
 	//fmt.Println(litedir.FileJsonLoader("/Users/lodge/Library/Caches/lite-tools/browser/config.json"))
 	//fmt.Println(litenet.GetLAN())
@@ -20,9 +30,9 @@ func main() {
 	//fmt.Println(litenet.GetUA("chrome", "edge", "opera"))
 	//fmt.Println(litenet.GetUA("chrome", "edge"))
 	//t := litetime.Time{
-	//Unit: "ms",
-	//Fmt: true,
-	//Cursor: -10,
+	//	Unit:   "ms",
+	//	Fmt:    true,
+	//	Cursor: -10,
 	//}
 	//fmt.Println(t.GetTime().Int()) // 1704854601
 	//fmt.Println(t.GetTime().Float())
