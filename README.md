@@ -18,6 +18,7 @@ import (
 
 func main(){
 	defer litetime.Timer("main")()   // 用于统计该函数运行耗时
+	
     t := litetime.Time{
         //Goal: "2024-01-10 10:43:21", // 如果不传 所有操作基于当前时间 传了字符串 那么基于字符串所示时间处理 不过字符串得对应下面的格式化样式
         // 如果传入了时间戳 基于时间戳处理
@@ -129,6 +130,19 @@ import (
 
 func main(){
     fmt.Println(litejson.TrgGet(`jsonStringHere`, "ruleHere"))
+
+    baseJson := `{"a-x":{"b_z":[{"c":["x","y","z"]},{"d":[[3,4,5],[6,7,8]]}]}}`
+    
+    value, _ := litejson.TryGet(baseJson, "a-x.b_z[0].c")  // 直接用 . 提取
+    fmt.Println(value.Value)                                 // 不确定格式的 可以用 Value 取值
+    value, _ = litejson.TryGet(baseJson, "a-x.b_z[0].e|a.b_z[0].d[-1][-1]")  // 可以用 | 来分割多个rule
+    value, _ = litejson.TryGet(baseJson, "a-x.b_z[1].d[-1][-1]")             // 可以支持golang不支持的 负数的值的提取
+    fmt.Println(value.Int())                                 // 确定格式的可以指定某个输出格式
+    value, _ = litejson.TryGet(baseJson, "a-x.b_z[0].c[-2]")
+    fmt.Println(value.String())                              // String 是任意类型都可以转成string样式
+    value, err := litejson.TryGet(baseJson, "a-x.b_z[6].c[0]")             // 错误的提取可以从两个地方提取
+    fmt.Println(value.Error)
+    fmt.Println(err)
 }
 
 ```

@@ -20,17 +20,18 @@ func testTime() {
 }
 
 func testJson() {
-	baseJson := `{"a":{"b":[{"c":["x","y","z"]},{"d":[[3,4,5],[6,7,8]]}]}}`
+	baseJson := `{"a-x":{"b_z":[{"c":["x","y","z"]},{"d":[[3,4,5],[6,7,8]]}]}}`
 
-	value, _ := litejson.TryGet(baseJson, "a.b[0].c")
+	value, _ := litejson.TryGet(baseJson, "a-x.b_z[0].c")
 	fmt.Println(value.Value)
-	value, _ = litejson.TryGet(baseJson, "a.b[0].e|a.b[0].d[-1][-1]")
-	value, _ = litejson.TryGet(baseJson, "a.b[1].d[-1][-1]")
+	value, _ = litejson.TryGet(baseJson, "a-x.b_z[0].e|a.b_z[0].d[-1][-1]")
+	value, _ = litejson.TryGet(baseJson, "a-x.b_z[1].d[-1][-1]")
 	fmt.Println(value.Int())
-	value, _ = litejson.TryGet(baseJson, "a.b[0].c[-2]")
+	value, _ = litejson.TryGet(baseJson, "a-x.b_z[0].c[-2]")
 	fmt.Println(value.String())
-	value, _ = litejson.TryGet(baseJson, "a.b[6].c[-5]")
+	value, err := litejson.TryGet(baseJson, "a-x.b_z[6].c[0]")
 	fmt.Println(value.Error)
+	fmt.Println(err)
 }
 
 func testNet() {
