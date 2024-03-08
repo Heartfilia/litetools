@@ -1,6 +1,7 @@
 package litenet
 
 import (
+	"github.com/Heartfilia/litetools/litejson"
 	"github.com/Heartfilia/litetools/litenet/request"
 	"log"
 	"net"
@@ -47,7 +48,10 @@ func GetWAN() string {
 		if result == "" {
 			return ""
 		}
-		ip = result
+		nowResult, err := litejson.TryGet(result, "origin")
+		if err == nil {
+			ip = nowResult.String()
+		}
 	}
 	return ip
 }

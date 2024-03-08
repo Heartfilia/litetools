@@ -54,7 +54,7 @@ func testString() {
 
 func main() {
 	//testTime()
-	testJson()
-	//testNet()
+	//testJson()
+	testNet()
 	//testString()
 }
