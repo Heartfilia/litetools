@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
+	sysTime "time"
 )
 
 type Time struct {
@@ -35,7 +35,7 @@ func (t *Time) init() {
 		t.Unit = "s"
 	}
 	if t.Area == "" {
-		//_, err := time.LoadLocation("Asia/Shanghai")
+		//_, err := sysTime.LoadLocation("Asia/Shanghai")
 		//if err != nil {
 		//	return
 		//}
@@ -102,24 +102,24 @@ func (r *Result) Float() float64 {
 
 // -------------------------------------
 func (t *Time) unit(r *Result) {
-	//fmt.Println("1 s :", time.Now().Unix())
-	//fmt.Println("2 ms:", time.Now().UnixMilli())
-	//fmt.Println("3 ns:", time.Now().UnixMicro())
-	//fmt.Println("4 ps:", time.Now().UnixNano())
+	//fmt.Println("1 s :", sysTime.Now().Unix())
+	//fmt.Println("2 ms:", sysTime.Now().UnixMilli())
+	//fmt.Println("3 ns:", sysTime.Now().UnixMicro())
+	//fmt.Println("4 ps:", sysTime.Now().UnixNano())
 
 	cursor := parseCursor(t.Cursor)
 
 	if t.Unit == "ms" {
 		mis := cursorSecond(cursor, 1000)
-		tempTime := time.Now().UnixMicro()
+		tempTime := sysTime.Now().UnixMicro()
 		r.floatMs = float64(tempTime)/1000 + mis
-		r.intMs = time.Now().UnixMilli() + int64(mis)
+		r.intMs = sysTime.Now().UnixMilli() + int64(mis)
 		r.resultString = "ms"
 	} else {
 		mis := cursorSecond(cursor, 1)
-		tempTime := time.Now().UnixMicro()
+		tempTime := sysTime.Now().UnixMicro()
 		r.floatS = float64(tempTime) / 1e6
-		r.intS = time.Now().Unix() + int64(mis)
+		r.intS = sysTime.Now().Unix() + int64(mis)
 		r.resultString = "s"
 	}
 }
@@ -137,12 +137,12 @@ func stringGoal(goal string, t *Time, r *Result) {
 
 	r.stringFmt = goal
 	golangFmt := fmt_time.GetFormat(fmtString)
-	location, err := time.LoadLocation(t.Area)
+	location, err := sysTime.LoadLocation(t.Area)
 	if err != nil {
 		r.err = err
 		return
 	}
-	ts, err := time.ParseInLocation(golangFmt, goal, location)
+	ts, err := sysTime.ParseInLocation(golangFmt, goal, location)
 	if err != nil {
 		r.err = err
 		return
@@ -161,7 +161,7 @@ func stringGoal(goal string, t *Time, r *Result) {
 		r.resultString = "s"
 	}
 	if cursor != "0h" {
-		t, _ := time.ParseDuration(cursor)
+		t, _ := sysTime.ParseDuration(cursor)
 		ts = ts.Add(t)
 		r.stringFmt = ts.Format(golangFmt)
 	}
@@ -193,11 +193,11 @@ func intGoal(goal int64, t *Time, r *Result) {
 		}
 	} else {
 		golangFmt := fmt_time.GetFormat(fmtTemp)
-		var ts time.Time
+		var ts sysTime.Time
 		if t.Unit == "ms" {
-			ts = time.Unix(r.intMs/1000, 0)
+			ts = sysTime.Unix(r.intMs/1000, 0)
 		} else {
-			ts = time.Unix(r.intS, 0)
+			ts = sysTime.Unix(r.intS, 0)
 		}
 		r.stringFmt = ts.Format(golangFmt)
 
@@ -208,7 +208,7 @@ func cursorSecond(cursorString string, times int64) float64 {
 	if cursorString == "0h" {
 		return 0
 	}
-	t, _ := time.ParseDuration(cursorString)
+	t, _ := sysTime.ParseDuration(cursorString)
 
 	return t.Seconds() * float64(times)
 }
@@ -247,15 +247,15 @@ func falseFmt(t *Time, r *Result) {
 	cursor = parseCursor(t.Cursor)
 	if t.Unit == "ms" {
 		mis := cursorSecond(cursor, 1000)
-		tempTime := time.Now().UnixMicro()
+		tempTime := sysTime.Now().UnixMicro()
 		r.floatMs = float64(tempTime)/1000 + mis
-		r.intMs = time.Now().UnixMilli() + int64(mis)
+		r.intMs = sysTime.Now().UnixMilli() + int64(mis)
 		r.stringFmt = fmt.Sprintf("%d", r.intMs)
 	} else {
 		mis := cursorSecond(cursor, 1)
-		tempTime := time.Now().UnixMilli()
+		tempTime := sysTime.Now().UnixMilli()
 		r.floatS = float64(tempTime)/1000 + mis
-		r.intS = time.Now().Unix() + int64(mis)
+		r.intS = sysTime.Now().Unix() + int64(mis)
 		r.stringFmt = fmt.Sprintf("%d", r.intS)
 	}
 	r.resultString = t.Unit
@@ -335,7 +335,7 @@ func (t *Time) Default() {
 }
 
 func (t *Time) GetTime() *Result {
-	t.initTime()
+	t.init()
 	r := new(Result)
 	// 1 直接获取到时间的情况
 	if t.Fmt == nil && t.Goal == nil {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/Heartfilia/litetools/litestring"
 	"log"
 	"reflect"
 	"regexp"
@@ -21,8 +22,17 @@ const (
 )
 
 type Result struct {
-	Value any
-	Error error
+	Value  any
+	Error  error
+	isLast bool
+}
+
+func (r *Result) setLast(value bool) {
+	r.isLast = value
+}
+
+func (r *Result) getLast() bool {
+	return r.isLast
 }
 
 func (r *Result) String() string {
@@ -42,7 +52,7 @@ func (r *Result) Int() int {
 	case float32:
 		return int(r.Value.(float32))
 	}
-	r.Error = errors.New("panic: type conversion failed")
+	r.Error = errors.New(colorPanic("type conversion failed"))
 	return 0
 }
 
@@ -59,7 +69,7 @@ func (r *Result) Int64() int64 {
 	case float32:
 		return int64(r.Value.(float32))
 	}
-	r.Error = errors.New("panic: type conversion failed")
+	r.Error = errors.New(colorPanic("type conversion failed"))
 	return 0
 }
 
@@ -77,7 +87,7 @@ func (r *Result) Int32() int32 {
 		return int32(r.Value.(float32))
 
 	}
-	r.Error = errors.New("panic: type conversion failed")
+	r.Error = errors.New(colorPanic("type conversion failed"))
 	return 0
 }
 
@@ -94,7 +104,7 @@ func (r *Result) Float() float64 {
 	case int32:
 		return float64(r.Value.(int32))
 	}
-	r.Error = errors.New("panic: type conversion failed")
+	r.Error = errors.New(colorPanic("type conversion failed"))
 	return 0.0
 }
 
@@ -111,7 +121,7 @@ func (r *Result) Float32() float32 {
 	case int32:
 		return float32(r.Value.(int32))
 	}
-	r.Error = errors.New("panic: type conversion failed")
+	r.Error = errors.New(colorPanic("type conversion failed"))
 	return 0.0
 }
 
@@ -153,6 +163,10 @@ func (r *Result) Bool() bool {
 }
 
 //type sReplace string
+
+func colorPanic(msg string) string {
+	return litestring.ColorString("panic: ", "red") + msg
+}
 
 func replaceTo(str string, mode int) string {
 	if mode == 1 {
@@ -232,16 +246,12 @@ func clearArray(rule *string, array []string) {
 	}
 }
 
-func getKey(item any, key string) any {
-	return nil
-}
-
 func (r *resultCache) parse(rule string, lastKey bool) {
 	nowObj := r.BaseAny
 	if nowObj == nil && lastKey != true {
 		r.Result = nil
 		r.OK = true
-		r.Error = errors.New("panic: there is a next node, but no object is available")
+		r.Error = errors.New(colorPanic("there is a next node, but no object is available"))
 		return
 	}
 	if regRuleCache.isEmpty() {
@@ -258,13 +268,13 @@ func (r *resultCache) parse(rule string, lastKey bool) {
 		if err != nil {
 			r.Result = nil
 			r.OK = true
-			r.Error = errors.New("panic: wrong extraction sequence number")
+			r.Error = errors.New(colorPanic(" wrong extraction sequence number"))
 			return
 		}
 		if nowObj == nil {
 			r.Result = nil
 			r.OK = true
-			r.Error = errors.New("panic: runtime error: invalid memory address or nil pointer dereference")
+			r.Error = errors.New(colorPanic("runtime error: invalid memory address or nil pointer dereference"))
 			return
 		}
 		typeAny := reflect.TypeOf(nowObj)
@@ -274,13 +284,30 @@ func (r *resultCache) parse(rule string, lastKey bool) {
 			array := nowObj.([]any)
 			if numberInRule < 0 {
 				// 兼容 [-1]  [-2]
-				numberInRule = len(array) + numberInRule
+				numberInRule += len(array)
+				if numberInRule < 0 {
+					r.Result = nil
+					r.OK = true
+					r.Error = errors.New(colorPanic(
+						fmt.Sprintf("runtime error: index out of range [%d] with length %d",
+							numberInRule-len(array), len(array)),
+					))
+					return
+				}
+			} else if numberInRule > len(array)-1 {
+				r.Result = nil
+				r.OK = true
+				r.Error = errors.New(colorPanic(
+					fmt.Sprintf("runtime error: index out of range [%d] with length %d",
+						numberInRule, len(array)),
+				))
+				return
 			}
 
 			if array == nil || len(array)-1 < numberInRule {
 				r.Result = nil
 				r.OK = true
-				r.Error = errors.New("panic: no slice or wrong extraction sequence number")
+				r.Error = errors.New(colorPanic("no slice or wrong extraction sequence number"))
 				return
 			}
 			r.BaseAny = array[numberInRule]
@@ -358,12 +385,18 @@ func parseRule(jsonString, rule string, resultObj *Result) {
 	}
 	resultObj.Value = js.Result
 	resultObj.Error = js.Error
+	if js.Error != nil {
+		resultObj.setLast(false)
+	} else if js.Result != nil {
+		resultObj.setLast(true)
+	}
+
 }
 
 func JudgeAndExtractEachRule(jsonString string, rules []string, resultObj *Result) {
 	for _, rule := range rules {
 		parseRule(jsonString, rule, resultObj)
-		if resultObj.Error != nil {
+		if resultObj.getLast() {
 			break
 		}
 	}
