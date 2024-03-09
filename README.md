@@ -142,9 +142,9 @@ func main(){
     fmt.Println(value.String())                              // String 是任意类型都可以转成string样式
     value, err := litejson.TryGet(baseJson, "a-x.b_z[6].c[0]")             // 错误的提取可以从两个地方提取
     fmt.Println(value.Error)
-    fmt.Println(err)
+    fmt.Println(err) 
 	
-	// 支持了第一个位置填入json文件的路径
+    // 支持了第一个位置填入json文件的路径
     value, _ := litejson.TryGet("your path/package.json", "dependencies.abc")
     // 支持了常用的 一维数组 结果
 	for _, v := range value.StringSlice() {
@@ -152,4 +152,15 @@ func main(){
     }
 }
 
+```
+
+
+### 项目开发背景
+```text
+自学了golang一段时间后，苦于没有实践，然后发现golang里面很多操作重复写的东西太多
+
+然后也看了一下目前已有的工具，都太老套了，实现一个功能写N行才能拿到想要的结果
+然后我就打算 开发一些适合自己使用习惯的功能
+
+项目经验不够丰富，所以代码没有那么好看，等以后经验多了，会持续修复优化代码
 ```
