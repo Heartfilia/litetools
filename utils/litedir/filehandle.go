@@ -3,6 +3,7 @@ package litedir
 import (
 	"encoding/json"
 	"github.com/Heartfilia/litetools/utils/types"
+	"io"
 	"os"
 )
 
@@ -13,6 +14,26 @@ func FileExists(pathName string) bool {
 	} else {
 		return true
 	}
+}
+
+func FileReader(pathName string) string {
+	// 直接获取文本然后直接拿到文本
+	open, err := os.Open(pathName)
+	if err != nil {
+		return ""
+	}
+	defer func(file *os.File) {
+		err = file.Close()
+		if err != nil {
+			return
+		}
+	}(open)
+
+	all, err := io.ReadAll(open)
+	if err != nil {
+		return ""
+	}
+	return string(all)
 }
 
 func FileSaver(str, pathString string) bool {

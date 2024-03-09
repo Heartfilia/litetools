@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/Heartfilia/litetools/litestring"
+	"github.com/Heartfilia/litetools/utils/litedir"
 	"log"
 	"reflect"
 	"regexp"
@@ -21,10 +22,30 @@ const (
 	blank //
 )
 
+type resultCache struct {
+	//Base    string         // 缓存当前处理的段的数据   // 没啥用 先处理了
+	BaseAny any            // 把用json提取的Base放到这里
+	Array   []any          // 如果下一段是 任意类型数组
+	Result  any            // 结果
+	Object  map[string]any // 如果下一段是任意类型的map对象
+	OK      bool           // 是否是最终结果
+	Error   error          // 程序过程中的错误
+}
+
 type Result struct {
-	Value  any
 	Error  error
+	value  any
 	isLast bool
+}
+
+var regRuleCache regexRule
+
+type regexRule struct {
+	OnlyArray     *regexp.Regexp // [0]
+	OnlyKey       *regexp.Regexp // a
+	KeyArray      *regexp.Regexp // a[0]
+	SplitKeyArray *regexp.Regexp // a [0] [1] 拆分这个
+	// 不支持的格式 [0]b  --> not support
 }
 
 func (r *Result) setLast(value bool) {
@@ -35,123 +56,236 @@ func (r *Result) getLast() bool {
 	return r.isLast
 }
 
+func (r *Result) setValue(value any) {
+	r.value = value
+}
+
+func (r *Result) Value() any {
+	return r.value
+}
+
+func (r *Result) StringSlice() []string {
+	switch r.Value().(type) {
+	case []interface{}:
+		result := make([]string, len(r.Value().([]any)))
+		for i, v := range r.Value().([]any) {
+			result[i] = fmt.Sprintf("%v", v)
+		}
+		return result
+	}
+	return nil
+}
+
 func (r *Result) String() string {
-	return fmt.Sprintf("%v", r.Value)
+	return fmt.Sprintf("%v", r.Value())
 }
 
 func (r *Result) Int() int {
-	switch r.Value.(type) {
+	switch r.Value().(type) {
 	case int:
-		return r.Value.(int)
+		return r.Value().(int)
 	case int64:
-		return int(r.Value.(int64))
+		return int(r.Value().(int64))
 	case int32:
-		return int(r.Value.(int32))
+		return int(r.Value().(int32))
 	case float64:
-		return int(r.Value.(float64))
+		return int(r.Value().(float64))
 	case float32:
-		return int(r.Value.(float32))
+		return int(r.Value().(float32))
 	}
 	r.Error = errors.New(colorPanic("type conversion failed"))
 	return 0
+}
+
+func (r *Result) IntSlice() []int {
+	switch r.Value().(type) {
+	case []any:
+		result := make([]int, len(r.Value().([]any)))
+		for i, v := range r.Value().([]any) {
+			realValue, err := strconv.Atoi(fmt.Sprintf("%v", v))
+			if err != nil {
+				r.Error = errors.New(colorPanic("bad slice types"))
+				return nil
+			}
+			result[i] = realValue
+		}
+		return result
+	}
+	return nil
 }
 
 func (r *Result) Int64() int64 {
-	switch r.Value.(type) {
+	switch r.Value().(type) {
 	case int:
-		return int64(r.Value.(int))
+		return int64(r.Value().(int))
 	case int64:
-		return r.Value.(int64)
+		return r.Value().(int64)
 	case int32:
-		return int64(r.Value.(int32))
+		return int64(r.Value().(int32))
 	case float64:
-		return int64(r.Value.(float64))
+		return int64(r.Value().(float64))
 	case float32:
-		return int64(r.Value.(float32))
+		return int64(r.Value().(float32))
 	}
 	r.Error = errors.New(colorPanic("type conversion failed"))
 	return 0
+}
+
+func (r *Result) Int64Slice() []int64 {
+	switch r.Value().(type) {
+	case []any:
+		result := make([]int64, len(r.Value().([]any)))
+		for i, v := range r.Value().([]any) {
+			realValue, err := strconv.Atoi(fmt.Sprintf("%v", v))
+			if err != nil {
+				r.Error = errors.New(colorPanic("bad slice types"))
+				return nil
+			}
+			result[i] = int64(realValue)
+		}
+		return result
+	}
+	return nil
 }
 
 func (r *Result) Int32() int32 {
-	switch r.Value.(type) {
+	switch r.Value().(type) {
 	case int:
-		return int32(r.Value.(int))
+		return int32(r.Value().(int))
 	case int64:
-		return int32(r.Value.(int64))
+		return int32(r.Value().(int64))
 	case int32:
-		return r.Value.(int32)
+		return r.Value().(int32)
 	case float64:
-		return int32(r.Value.(float64))
+		return int32(r.Value().(float64))
 	case float32:
-		return int32(r.Value.(float32))
+		return int32(r.Value().(float32))
 
 	}
 	r.Error = errors.New(colorPanic("type conversion failed"))
 	return 0
 }
 
+func (r *Result) Int32Slice() []int32 {
+	switch r.Value().(type) {
+	case []any:
+		result := make([]int32, len(r.Value().([]any)))
+		for i, v := range r.Value().([]any) {
+			realValue, err := strconv.Atoi(fmt.Sprintf("%v", v))
+			if err != nil {
+				r.Error = errors.New(colorPanic("bad slice types"))
+				return nil
+			}
+			result[i] = int32(realValue)
+		}
+		return result
+	}
+	return nil
+}
+
 func (r *Result) Float() float64 {
-	switch r.Value.(type) {
+	switch r.Value().(type) {
 	case float64:
-		return r.Value.(float64)
+		return r.Value().(float64)
 	case float32:
-		return float64(r.Value.(float32))
+		return float64(r.Value().(float32))
 	case int:
-		return float64(r.Value.(int))
+		return float64(r.Value().(int))
 	case int64:
-		return float64(r.Value.(int64))
+		return float64(r.Value().(int64))
 	case int32:
-		return float64(r.Value.(int32))
+		return float64(r.Value().(int32))
 	}
 	r.Error = errors.New(colorPanic("type conversion failed"))
 	return 0.0
 }
 
+func (r *Result) FloatSlice() []float64 {
+	switch r.Value().(type) {
+	case []any:
+		result := make([]float64, len(r.Value().([]any)))
+		for i, v := range r.Value().([]any) {
+			switch v.(type) {
+			case float64:
+				result[i] = v.(float64)
+			case float32:
+				result[i] = float64(v.(float32))
+			default:
+				r.Error = errors.New(colorPanic("bad slice types"))
+				return nil
+			}
+
+		}
+		return result
+	}
+	return nil
+}
+
 func (r *Result) Float32() float32 {
-	switch r.Value.(type) {
+	switch r.Value().(type) {
 	case float64:
-		return float32(r.Value.(float64))
+		return float32(r.Value().(float64))
 	case float32:
-		return r.Value.(float32)
+		return r.Value().(float32)
 	case int:
-		return float32(r.Value.(int))
+		return float32(r.Value().(int))
 	case int64:
-		return float32(r.Value.(int64))
+		return float32(r.Value().(int64))
 	case int32:
-		return float32(r.Value.(int32))
+		return float32(r.Value().(int32))
 	}
 	r.Error = errors.New(colorPanic("type conversion failed"))
 	return 0.0
+}
+
+func (r *Result) Float32Slice() []float32 {
+	switch r.Value().(type) {
+	case []any:
+		result := make([]float32, len(r.Value().([]any)))
+		for i, v := range r.Value().([]any) {
+			switch v.(type) {
+			case float32:
+				result[i] = v.(float32)
+			case float64:
+				result[i] = float32(v.(float64))
+			default:
+				r.Error = errors.New(colorPanic("bad slice types"))
+				return nil
+			}
+
+		}
+		return result
+	}
+	return nil
 }
 
 func (r *Result) Bool() bool {
 	otherBool := false
-	switch r.Value.(type) {
+	switch r.Value().(type) {
 	case bool:
-		return r.Value.(bool)
+		return r.Value().(bool)
 	case int64:
-		if r.Value.(int64) != 0 {
+		if r.Value().(int64) != 0 {
 			otherBool = true
 		}
 	case int32:
-		if r.Value.(int32) != 0 {
+		if r.Value().(int32) != 0 {
 			otherBool = true
 		}
 	case int:
-		if r.Value.(int) != 0 {
+		if r.Value().(int) != 0 {
 			otherBool = true
 		}
 	case float64:
-		if r.Value.(float64) != 0 {
+		if r.Value().(float64) != 0 {
 			otherBool = true
 		}
 	case float32:
-		if r.Value.(float32) != 0 {
+		if r.Value().(float32) != 0 {
 			otherBool = true
 		}
 	case string:
-		if r.Value.(string) != "" {
+		if r.Value().(string) != "" {
 			otherBool = true
 		}
 	default:
@@ -162,7 +296,13 @@ func (r *Result) Bool() bool {
 	return otherBool
 }
 
-//type sReplace string
+func (r *Result) BoolSlice() []bool {
+	switch r.Value().(type) {
+	case []bool:
+		return r.Value().([]bool)
+	}
+	return nil
+}
 
 func colorPanic(msg string) string {
 	return litestring.ColorString("panic: ", "red") + msg
@@ -192,24 +332,6 @@ func SplitRule(rule string) []string {
 	return strings.Split(rule, "|")
 }
 
-type resultCache struct {
-	Base    string         // 缓存当前处理的段的数据
-	BaseAny any            // 把用json提取的Base放到这里
-	Array   []any          // 如果下一段是 任意类型数组
-	Result  any            // 结果
-	Object  map[string]any // 如果下一段是任意类型的map对象
-	OK      bool           // 是否是最终结果
-	Error   error          // 程序过程中的错误
-}
-
-type regexRule struct {
-	OnlyArray     *regexp.Regexp // [0]
-	OnlyKey       *regexp.Regexp // a
-	KeyArray      *regexp.Regexp // a[0]
-	SplitKeyArray *regexp.Regexp // a [0] [1] 拆分这个
-	// 不支持的格式 [0]b  --> not support
-}
-
 func (r *regexRule) isEmpty() bool {
 	// 判断是否为未初始化的数据结构
 	if r.OnlyArray == nil || r.OnlyKey == nil || r.KeyArray == nil || r.SplitKeyArray == nil {
@@ -236,8 +358,6 @@ func (r *regexRule) onlyKey(rule string) bool {
 func (r *regexRule) keyWithArray(rule string) bool {
 	return r.KeyArray.MatchString(rule)
 }
-
-var regRuleCache regexRule
 
 func clearArray(rule *string, array []string) {
 	// 避免出现 a[bc.c[1]
@@ -367,7 +487,7 @@ func parseRule(jsonString, rule string, resultObj *Result) {
 	}
 
 	var js = resultCache{
-		Base:    jsonString,
+		//Base:    jsonString,  // 这一行缓存没啥用 不占用资源了
 		BaseAny: res,
 	}
 
@@ -383,7 +503,7 @@ func parseRule(jsonString, rule string, resultObj *Result) {
 			break
 		}
 	}
-	resultObj.Value = js.Result
+	resultObj.setValue(js.Result)
 	resultObj.Error = js.Error
 	if js.Error != nil {
 		resultObj.setLast(false)
@@ -394,6 +514,13 @@ func parseRule(jsonString, rule string, resultObj *Result) {
 }
 
 func JudgeAndExtractEachRule(jsonString string, rules []string, resultObj *Result) {
+	if strings.Index(jsonString, ".json") != -1 && litedir.FileExists(jsonString) {
+		// 只是猜测是不是json的文件 如果是的话 直接读取处理
+		tempString := litedir.FileReader(jsonString)
+		if tempString != "" {
+			jsonString = tempString
+		}
+	}
 	for _, rule := range rules {
 		parseRule(jsonString, rule, resultObj)
 		if resultObj.getLast() {
