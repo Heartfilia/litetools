@@ -69,7 +69,7 @@ func main(){
 	fmt.Println(litetime.Time(nil).String())  // 默认就是 %Y-%m-%d %H:%M:%S 的格式
 	fmt.Println(litetime.Time(t).String())    // 传入 litetime.Time{} 结构体  可以自定义输出
 	fmt.Println("------------------------------------")
-	fmt.Println("错误的情况-->", litetime.Time(123).String())    // 如果传入的不是 nil 或者 litetime.Time{}  会拿不到结果 得到对应的零值
+	fmt.Println("错误的情况-->", litetime.Time(123).String())    // 如果传入的不是 nil 或者 litetime.Option{}  会拿不到结果 得到对应的零值
 	fmt.Println("------------------------------------")
 }
 ```
