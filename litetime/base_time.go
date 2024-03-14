@@ -316,9 +316,6 @@ func fmtMode(o *Option, r *Result) {
 //	*/
 //	o.Goal = nil
 //	o.Fmt = nil
-//	o.Unit = "s"
-//	o.Cursor = 0
-//	o.Area = "Asia/Shanghai"
 //}
 
 func initOption(o *Option) {
@@ -327,6 +324,9 @@ func initOption(o *Option) {
 	}
 	if o.Cursor == nil {
 		o.Cursor = 0
+	}
+	if o.Unit == "" {
+		o.Unit = "ms"
 	}
 }
 
