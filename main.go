@@ -10,17 +10,21 @@ import (
 
 func testTime() {
 	defer litetime.Timer("main")()
-	t := litetime.Option{
-		Unit:   "ms",
-		Fmt:    true,
-		Cursor: -10,
-	}
-	fmt.Println(litetime.Time(nil).Int())
-	fmt.Println(litetime.Time(nil).String())
-	fmt.Println(litetime.Time(t).String())
-	fmt.Println("------------------------------------")
-	fmt.Println("错误的情况-->", litetime.Time(123).String())
-	fmt.Println("------------------------------------")
+	//t := litetime.Option{
+	//	Unit:   "ms",
+	//	Fmt:    true,
+	//	Cursor: -10,
+	//}
+	//fmt.Println(litetime.Time(nil).Int())
+	//fmt.Println(litetime.Time(nil).String())
+	//fmt.Println(litetime.Time(t).String())
+	//fmt.Println("------------------------------------")
+	//fmt.Println("错误的情况-->", litetime.Time(123).String())
+	//fmt.Println("------------------------------------")
+	fmt.Println(litetime.Time(litetime.Option{
+		Goal: "2024-03-14 10:36:00",
+		Unit: "ms",
+	}).Int())
 }
 
 func testJson() {

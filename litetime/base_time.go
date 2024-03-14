@@ -87,15 +87,15 @@ func (r *Result) Float() float64 {
 }
 
 // -------------------------------------
-func unit(t *Option, r *Result) {
+func unit(o *Option, r *Result) {
 	//fmt.Println("1 s :", sysTime.Now().Unix())
 	//fmt.Println("2 ms:", sysTime.Now().UnixMilli())
 	//fmt.Println("3 ns:", sysTime.Now().UnixMicro())
 	//fmt.Println("4 ps:", sysTime.Now().UnixNano())
 
-	cursor := parseCursor(t.Cursor)
+	cursor := parseCursor(o.Cursor)
 
-	if t.Unit == "ms" {
+	if o.Unit == "ms" {
 		mis := cursorSecond(cursor, 1000)
 		tempTime := sysTime.Now().UnixMicro()
 		r.floatMs = float64(tempTime)/1000 + mis
@@ -111,20 +111,20 @@ func unit(t *Option, r *Result) {
 	r.stringFmt = fmt_time.FmtType("", cursor)
 }
 
-func number(t *Option, r *Result) {
-	if t.Goal == nil {
-		unit(t, r)
+func number(o *Option, r *Result) {
+	if o.Goal == nil {
+		unit(o, r)
 	}
 }
 
-func stringGoal(goal string, t *Option, r *Result) {
+func stringGoal(goal string, o *Option, r *Result) {
 	// 传入了格式化时间 格式化的格式 获得转好的时间戳
-	fmtString := getFmt(t.Fmt, false)
-	cursor := parseCursor(t.Cursor)
+	fmtString := getFmt(o.Fmt, false)
+	cursor := parseCursor(o.Cursor)
 
 	r.stringFmt = goal
 	golangFmt := fmt_time.GetFormat(fmtString)
-	location, err := sysTime.LoadLocation(t.Area)
+	location, err := sysTime.LoadLocation(o.Area)
 	if err != nil {
 		r.err = err
 		return
@@ -134,7 +134,7 @@ func stringGoal(goal string, t *Option, r *Result) {
 		r.err = err
 		return
 	}
-	if t.Unit == "ms" {
+	if o.Unit == "ms" {
 		mis := cursorSecond(cursor, 1000)
 		tempTime := ts.UnixMicro()
 		r.floatMs = float64(tempTime)/1000 + mis
@@ -155,9 +155,9 @@ func stringGoal(goal string, t *Option, r *Result) {
 
 }
 
-func intGoal(goal int64, t *Option, r *Result) {
-	fmtTemp := getFmt(t.Fmt, true)
-	cursor := parseCursor(t.Cursor)
+func intGoal(goal int64, o *Option, r *Result) {
+	fmtTemp := getFmt(o.Fmt, true)
+	cursor := parseCursor(o.Cursor)
 	if 1e9 <= goal && goal < 1e10 {
 		//
 		mis := cursorSecond(cursor, 1)
@@ -173,7 +173,7 @@ func intGoal(goal int64, t *Option, r *Result) {
 
 	if fmtTemp == "" {
 		// 如果是没有格式化时间的情况
-		if t.Unit == "ms" {
+		if o.Unit == "ms" {
 			r.stringFmt = fmt.Sprintf("%d", r.intMs)
 		} else {
 			r.stringFmt = fmt.Sprintf("%d", r.intS)
@@ -181,7 +181,7 @@ func intGoal(goal int64, t *Option, r *Result) {
 	} else {
 		golangFmt := fmt_time.GetFormat(fmtTemp)
 		var ts sysTime.Time
-		if t.Unit == "ms" {
+		if o.Unit == "ms" {
 			ts = sysTime.Unix(r.intMs/1000, 0)
 		} else {
 			ts = sysTime.Unix(r.intS, 0)
@@ -229,10 +229,10 @@ func parseCursor(cursor interface{}) string {
 	return resultCursor
 }
 
-func falseFmt(t *Option, r *Result) {
+func falseFmt(o *Option, r *Result) {
 	var cursor string
-	cursor = parseCursor(t.Cursor)
-	if t.Unit == "ms" {
+	cursor = parseCursor(o.Cursor)
+	if o.Unit == "ms" {
 		mis := cursorSecond(cursor, 1000)
 		tempTime := sysTime.Now().UnixMicro()
 		r.floatMs = float64(tempTime)/1000 + mis
@@ -245,22 +245,22 @@ func falseFmt(t *Option, r *Result) {
 		r.intS = sysTime.Now().Unix() + int64(mis)
 		r.stringFmt = fmt.Sprintf("%d", r.intS)
 	}
-	r.resultString = t.Unit
+	r.resultString = o.Unit
 }
 
-func noGoal(t *Option, r *Result) {
+func noGoal(o *Option, r *Result) {
 	var cursor string
-	cursor = parseCursor(t.Cursor)
+	cursor = parseCursor(o.Cursor)
 
-	switch t.Fmt.(type) {
+	switch o.Fmt.(type) {
 	case bool:
-		if t.Fmt.(bool) == true {
+		if o.Fmt.(bool) == true {
 			r.stringFmt = fmt_time.FmtType("", cursor)
 		} else {
-			falseFmt(t, r)
+			falseFmt(o, r)
 		}
 	case string:
-		r.stringFmt = fmt_time.FmtType(t.Fmt.(string), cursor)
+		r.stringFmt = fmt_time.FmtType(o.Fmt.(string), cursor)
 	}
 }
 
@@ -280,31 +280,31 @@ func getFmt(_fmt interface{}, noFmt bool) string {
 	return fmtTemp
 }
 
-func withGoal(t *Option, r *Result) {
-	switch t.Goal.(type) {
+func withGoal(o *Option, r *Result) {
+	switch o.Goal.(type) {
 	case string:
 		// 如果goal是字符串相关的
-		stringGoal(t.Goal.(string), t, r)
+		stringGoal(o.Goal.(string), o, r)
 	case float64:
-		intGoal(int64(t.Goal.(float64)), t, r)
+		intGoal(int64(o.Goal.(float64)), o, r)
 	case int:
-		intGoal(int64(t.Goal.(int)), t, r)
+		intGoal(int64(o.Goal.(int)), o, r)
 	case int64:
-		intGoal(t.Goal.(int64), t, r)
+		intGoal(o.Goal.(int64), o, r)
 	}
 	// 如果goal是数字相关的
 
 }
 
-func fmtMode(t *Option, r *Result) {
-	if t.Goal == nil {
+func fmtMode(o *Option, r *Result) {
+	if o.Goal == nil {
 		// 如果没有传入的话 那么就是获得 当前时间的格式化时间 或者 添加了游标之后的格式化时间
 		// 1. 什么都没传  fmt样式也没有传的
-		noGoal(t, r)
+		noGoal(o, r)
 	} else {
 		// 否则就是 传入了数字的时间戳 然后我这里需要对它进行格式化
 		// 需要 秒 或者 毫秒 单位的时间  +  fmt的格式(默认 %Y-%m-%d %H:%M:%S)
-		withGoal(t, r)
+		withGoal(o, r)
 	}
 }
 
@@ -314,15 +314,24 @@ func fmtMode(t *Option, r *Result) {
 //	/*
 //		快速恢复成默认状态
 //	*/
-//	t.Goal = nil
-//	t.Fmt = nil
-//	t.Unit = "s"
-//	t.Cursor = 0
-//	t.Area = "Asia/Shanghai"
+//	o.Goal = nil
+//	o.Fmt = nil
+//	o.Unit = "s"
+//	o.Cursor = 0
+//	o.Area = "Asia/Shanghai"
 //}
 
+func initOption(o *Option) {
+	if o.Area == "" {
+		o.Area = "Asia/Shanghai"
+	}
+	if o.Cursor == nil {
+		o.Cursor = 0
+	}
+}
+
 var defaultOption = Option{
-	Unit:   "s",
+	Unit:   "ms",
 	Area:   "Asia/Shanghai",
 	Cursor: 0,
 }
@@ -336,6 +345,7 @@ func Time(option interface{}) *Result {
 	case Option:
 		var nowTimeStruct Option
 		nowTimeStruct = option.(Option)
+		initOption(&nowTimeStruct)
 		if nowTimeStruct.Fmt == nil && nowTimeStruct.Goal == nil {
 			number(&nowTimeStruct, r)
 		} else {

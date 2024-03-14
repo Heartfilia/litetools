@@ -65,7 +65,7 @@ func main(){
     // 注意得结合预期获得结果 要不然获得的是对应类型的 零值
 	defer litetime.Timer("main")()
 	
-	fmt.Println(litetime.Time(nil).Int())     // 默认就是获取 10 位的时间戳（秒）
+	fmt.Println(litetime.Time(nil).Int())     // 默认就是获取 13 位的时间戳（毫秒）
 	fmt.Println(litetime.Time(nil).String())  // 默认就是 %Y-%m-%d %H:%M:%S 的格式
 	fmt.Println(litetime.Time(t).String())    // 传入 litetime.Time{} 结构体  可以自定义输出
 	fmt.Println("------------------------------------")
