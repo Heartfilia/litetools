@@ -15,8 +15,12 @@ func testTime() {
 		Fmt:    true,
 		Cursor: -10,
 	}
-	fmt.Println(t.GetTime().Float())
-	fmt.Println(t.GetTime().String())
+	fmt.Println(litetime.GetTime(nil).Int())
+	fmt.Println(litetime.GetTime(nil).String())
+	fmt.Println(litetime.GetTime(t).String())
+	fmt.Println("------------------------------------")
+	fmt.Println("错误的情况-->", litetime.GetTime(123).String())
+	fmt.Println("------------------------------------")
 }
 
 func testJson() {
@@ -58,8 +62,8 @@ func testString() {
 }
 
 func main() {
-	//testTime()
-	testJson()
+	testTime()
+	//testJson()
 	//testNet()
 	//testString()
 }

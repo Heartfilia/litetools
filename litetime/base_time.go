@@ -2,7 +2,9 @@ package litetime
 
 import (
 	"fmt"
+	"github.com/Heartfilia/litetools/litestring"
 	"github.com/Heartfilia/litetools/litetime/fmt_time"
+	"log"
 	"regexp"
 	"strconv"
 	"strings"
@@ -29,22 +31,6 @@ type Result struct {
 }
 
 const defaultTime = "%Y-%m-%d %H:%M:%S"
-
-func (t *Time) init() {
-	if t.Unit == "" {
-		t.Unit = "s"
-	}
-	if t.Area == "" {
-		//_, err := sysTime.LoadLocation("Asia/Shanghai")
-		//if err != nil {
-		//	return
-		//}
-		t.Area = "Asia/Shanghai"
-	}
-	if t.Cursor == nil {
-		t.Cursor = 0
-	}
-}
 
 // -------------------------------------
 
@@ -101,7 +87,7 @@ func (r *Result) Float() float64 {
 }
 
 // -------------------------------------
-func (t *Time) unit(r *Result) {
+func unit(t *Time, r *Result) {
 	//fmt.Println("1 s :", sysTime.Now().Unix())
 	//fmt.Println("2 ms:", sysTime.Now().UnixMilli())
 	//fmt.Println("3 ns:", sysTime.Now().UnixMicro())
@@ -122,11 +108,12 @@ func (t *Time) unit(r *Result) {
 		r.intS = sysTime.Now().Unix() + int64(mis)
 		r.resultString = "s"
 	}
+	r.stringFmt = fmt_time.FmtType("", cursor)
 }
 
-func (t *Time) number(r *Result) {
+func number(t *Time, r *Result) {
 	if t.Goal == nil {
-		t.unit(r)
+		unit(t, r)
 	}
 }
 
@@ -309,7 +296,7 @@ func withGoal(t *Time, r *Result) {
 
 }
 
-func (t *Time) fmtMode(r *Result) {
+func fmtMode(t *Time, r *Result) {
 	if t.Goal == nil {
 		// 如果没有传入的话 那么就是获得 当前时间的格式化时间 或者 添加了游标之后的格式化时间
 		// 1. 什么都没传  fmt样式也没有传的
@@ -323,26 +310,39 @@ func (t *Time) fmtMode(r *Result) {
 
 //------------- 主入口 -----------------
 
-func (t *Time) Default() {
-	/*
-		快速恢复成默认状态
-	*/
-	t.Goal = nil
-	t.Fmt = nil
-	t.Unit = "s"
-	t.Cursor = 0
-	t.Area = "Asia/Shanghai"
+//func Default(t *Time) {
+//	/*
+//		快速恢复成默认状态
+//	*/
+//	t.Goal = nil
+//	t.Fmt = nil
+//	t.Unit = "s"
+//	t.Cursor = 0
+//	t.Area = "Asia/Shanghai"
+//}
+
+var defaultOption = Time{
+	Unit:   "s",
+	Area:   "Asia/Shanghai",
+	Cursor: 0,
 }
 
-func (t *Time) GetTime() *Result {
-	t.init()
+func GetTime(option interface{}) *Result {
 	r := new(Result)
-	// 1 直接获取到时间的情况
-	if t.Fmt == nil && t.Goal == nil {
-		t.number(r)
-	} else {
-		t.fmtMode(r)
+	if option == nil {
+		option = defaultOption
 	}
-
+	switch option.(type) {
+	case Time:
+		var nowTimeStruct Time
+		nowTimeStruct = option.(Time)
+		if nowTimeStruct.Fmt == nil && nowTimeStruct.Goal == nil {
+			number(&nowTimeStruct, r)
+		} else {
+			fmtMode(&nowTimeStruct, r)
+		}
+	default:
+		log.Printf("[%s] option only support [litetime.Time{} or nil], but get [%v] \n", litestring.ColorString("ERROR", "red"), option)
+	}
 	return r
 }

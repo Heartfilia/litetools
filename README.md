@@ -63,9 +63,14 @@ func main(){
         Cursor: -1,
     }
     // 注意得结合预期获得结果 要不然获得的是对应类型的 零值
-    fmt.Println(t.GetTime().Int())
-    fmt.Println(t.GetTime().Float())
-    fmt.Println(t.GetTime().String())
+	defer litetime.Timer("main")()
+	
+	fmt.Println(litetime.GetTime(nil).Int())     // 默认就是获取 10 位的时间戳（秒）
+	fmt.Println(litetime.GetTime(nil).String())  // 默认就是 %Y-%m-%d %H:%M:%S 的格式
+	fmt.Println(litetime.GetTime(t).String())    // 传入 litetime.Time{} 结构体  可以自定义输出
+	fmt.Println("------------------------------------")
+	fmt.Println("错误的情况-->", litetime.GetTime(123).String())    // 如果传入的不是 nil 或者 litetime.Time{}  会拿不到结果 得到对应的零值
+	fmt.Println("------------------------------------")
 }
 ```
 
