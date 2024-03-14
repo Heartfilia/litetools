@@ -11,7 +11,7 @@ import (
 	sysTime "time"
 )
 
-type Time struct {
+type Option struct {
 	Goal   interface{} // 基础数据类型 不传入 默认进行的是时间戳获取
 	Fmt    interface{} // 格式化样式 不传入 默认不操作
 	Unit   string      // 时间样式 s为秒 ms为毫秒
@@ -87,7 +87,7 @@ func (r *Result) Float() float64 {
 }
 
 // -------------------------------------
-func unit(t *Time, r *Result) {
+func unit(t *Option, r *Result) {
 	//fmt.Println("1 s :", sysTime.Now().Unix())
 	//fmt.Println("2 ms:", sysTime.Now().UnixMilli())
 	//fmt.Println("3 ns:", sysTime.Now().UnixMicro())
@@ -111,13 +111,13 @@ func unit(t *Time, r *Result) {
 	r.stringFmt = fmt_time.FmtType("", cursor)
 }
 
-func number(t *Time, r *Result) {
+func number(t *Option, r *Result) {
 	if t.Goal == nil {
 		unit(t, r)
 	}
 }
 
-func stringGoal(goal string, t *Time, r *Result) {
+func stringGoal(goal string, t *Option, r *Result) {
 	// 传入了格式化时间 格式化的格式 获得转好的时间戳
 	fmtString := getFmt(t.Fmt, false)
 	cursor := parseCursor(t.Cursor)
@@ -155,7 +155,7 @@ func stringGoal(goal string, t *Time, r *Result) {
 
 }
 
-func intGoal(goal int64, t *Time, r *Result) {
+func intGoal(goal int64, t *Option, r *Result) {
 	fmtTemp := getFmt(t.Fmt, true)
 	cursor := parseCursor(t.Cursor)
 	if 1e9 <= goal && goal < 1e10 {
@@ -229,7 +229,7 @@ func parseCursor(cursor interface{}) string {
 	return resultCursor
 }
 
-func falseFmt(t *Time, r *Result) {
+func falseFmt(t *Option, r *Result) {
 	var cursor string
 	cursor = parseCursor(t.Cursor)
 	if t.Unit == "ms" {
@@ -248,7 +248,7 @@ func falseFmt(t *Time, r *Result) {
 	r.resultString = t.Unit
 }
 
-func noGoal(t *Time, r *Result) {
+func noGoal(t *Option, r *Result) {
 	var cursor string
 	cursor = parseCursor(t.Cursor)
 
@@ -280,7 +280,7 @@ func getFmt(_fmt interface{}, noFmt bool) string {
 	return fmtTemp
 }
 
-func withGoal(t *Time, r *Result) {
+func withGoal(t *Option, r *Result) {
 	switch t.Goal.(type) {
 	case string:
 		// 如果goal是字符串相关的
@@ -296,7 +296,7 @@ func withGoal(t *Time, r *Result) {
 
 }
 
-func fmtMode(t *Time, r *Result) {
+func fmtMode(t *Option, r *Result) {
 	if t.Goal == nil {
 		// 如果没有传入的话 那么就是获得 当前时间的格式化时间 或者 添加了游标之后的格式化时间
 		// 1. 什么都没传  fmt样式也没有传的
@@ -321,28 +321,28 @@ func fmtMode(t *Time, r *Result) {
 //	t.Area = "Asia/Shanghai"
 //}
 
-var defaultOption = Time{
+var defaultOption = Option{
 	Unit:   "s",
 	Area:   "Asia/Shanghai",
 	Cursor: 0,
 }
 
-func GetTime(option interface{}) *Result {
+func Time(option interface{}) *Result {
 	r := new(Result)
 	if option == nil {
 		option = defaultOption
 	}
 	switch option.(type) {
-	case Time:
-		var nowTimeStruct Time
-		nowTimeStruct = option.(Time)
+	case Option:
+		var nowTimeStruct Option
+		nowTimeStruct = option.(Option)
 		if nowTimeStruct.Fmt == nil && nowTimeStruct.Goal == nil {
 			number(&nowTimeStruct, r)
 		} else {
 			fmtMode(&nowTimeStruct, r)
 		}
 	default:
-		log.Printf("[%s] option only support [litetime.Time{} or nil], but get [%v] \n", litestring.ColorString("ERROR", "red"), option)
+		log.Printf("[%s] option only support [litetime.Option{} or nil], but get [%v] \n", litestring.ColorString("ERROR", "red"), option)
 	}
 	return r
 }

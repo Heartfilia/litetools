@@ -10,16 +10,16 @@ import (
 
 func testTime() {
 	defer litetime.Timer("main")()
-	t := litetime.Time{
+	t := litetime.Option{
 		Unit:   "ms",
 		Fmt:    true,
 		Cursor: -10,
 	}
-	fmt.Println(litetime.GetTime(nil).Int())
-	fmt.Println(litetime.GetTime(nil).String())
-	fmt.Println(litetime.GetTime(t).String())
+	fmt.Println(litetime.Time(nil).Int())
+	fmt.Println(litetime.Time(nil).String())
+	fmt.Println(litetime.Time(t).String())
 	fmt.Println("------------------------------------")
-	fmt.Println("错误的情况-->", litetime.GetTime(123).String())
+	fmt.Println("错误的情况-->", litetime.Time(123).String())
 	fmt.Println("------------------------------------")
 }
 
