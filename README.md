@@ -19,7 +19,7 @@ import (
 func main(){
 	defer litetime.Timer("main")()   // 用于统计该函数运行耗时
 	
-    t := litetime.Time{
+    t := litetime.Option{
         //Goal: "2024-01-10 10:43:21", // 如果不传 所有操作基于当前时间 传了字符串 那么基于字符串所示时间处理 不过字符串得对应下面的格式化样式
         // 如果传入了时间戳 基于时间戳处理
         //Unit: "ms",    // 如果是需要获取数字相关的时间 这里配置秒或者毫秒
@@ -31,45 +31,45 @@ func main(){
     /*
     可以组合的搭配示例
     */
-    t := litetime.Time{}
-    t := litetime.Time{
+    t := litetime.Option{}
+    t := litetime.Option{
         Goal: "2024-01-10 10:43:21",
     }
-    t := litetime.Time{
+    t := litetime.Option{
         Goal: "2024-01-10 10:43:21",
         Uint: "ms",
     }
-    t := litetime.Time{
+    t := litetime.Option{
         Uint: "ms",
         Cursor: "-1d3h",
     }
-    t := litetime.Time{
+    t := litetime.Option{
         Cursor: 10,
         Fmt: true,
     }
-    t := litetime.Time{
+    t := litetime.Option{
         Unit: "ms",
         Fmt: false,
     }
-    t := litetime.Time{
+    t := litetime.Option{
         Goal: 1704768201,
     }
-    t := litetime.Time{
+    t := litetime.Option{
         Goal: 1704768201123,
         Fmt: "%Y-%m-%d",
     }
-    t := litetime.Time{
+    t := litetime.Option{
         Goal: 1704768201123,
         Cursor: -1,
     }
     // 注意得结合预期获得结果 要不然获得的是对应类型的 零值
 	defer litetime.Timer("main")()
 	
-	fmt.Println(litetime.GetTime(nil).Int())     // 默认就是获取 10 位的时间戳（秒）
-	fmt.Println(litetime.GetTime(nil).String())  // 默认就是 %Y-%m-%d %H:%M:%S 的格式
-	fmt.Println(litetime.GetTime(t).String())    // 传入 litetime.Time{} 结构体  可以自定义输出
+	fmt.Println(litetime.Time(nil).Int())     // 默认就是获取 10 位的时间戳（秒）
+	fmt.Println(litetime.Time(nil).String())  // 默认就是 %Y-%m-%d %H:%M:%S 的格式
+	fmt.Println(litetime.Time(t).String())    // 传入 litetime.Time{} 结构体  可以自定义输出
 	fmt.Println("------------------------------------")
-	fmt.Println("错误的情况-->", litetime.GetTime(123).String())    // 如果传入的不是 nil 或者 litetime.Time{}  会拿不到结果 得到对应的零值
+	fmt.Println("错误的情况-->", litetime.Time(123).String())    // 如果传入的不是 nil 或者 litetime.Time{}  会拿不到结果 得到对应的零值
 	fmt.Println("------------------------------------")
 }
 ```
