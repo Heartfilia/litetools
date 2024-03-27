@@ -110,7 +110,7 @@ func (c *ChromiumOptions) SetRetry(ts int, interval float64) *ChromiumOptions {
 	return c
 }
 
-func (c *ChromiumOptions) RemoveArgument(value any) *ChromiumOptions {
+func (c *ChromiumOptions) RemoveArgument(value string) *ChromiumOptions {
 	// 移除一个argument项
 	if c.arguments == nil {
 		c.arguments = make([]string, 0)
@@ -122,29 +122,51 @@ func (c *ChromiumOptions) RemoveArgument(value any) *ChromiumOptions {
 	delList := make([]string, 0)
 
 	for _, argument := range c.arguments {
-		switch value.(type) {
-		case string:
-			if argument == value.(string) || strings.Index(argument, fmt.Sprintf("%v=", value)) == 0 {
-				delList = append(delList, argument)
-			}
+		if argument == value || strings.Index(argument, fmt.Sprintf("%v=", value)) == 0 {
+			delList = append(delList, argument)
 		}
 	}
 
 	for _, del := range delList {
 		c.arguments = literand.SliceRemove(c.arguments, del)
 	}
-
 	return c
 }
 
 func (c *ChromiumOptions) SetArgument(arg string, value any) *ChromiumOptions {
 	// 设置浏览器配置的argument属性
 	// arg  : 属性名
-	// value: 属性值，如果有值的传入值，没有值的传入nil,需要删除这个选项的传入 false
+	// value: 属性值，如果有值的传入值，没有值的传入 "" ,需要删除这个选项的传入 nil
 	if c.arguments == nil {
 		c.arguments = make([]string, 0)
 	}
+	c.RemoveArgument(arg)
 
+	switch value.(type) {
+	case string:
+		if arg == "--headless" && value.(string) == "" {
+			c.arguments = append(c.arguments, "--headless=new")
+		} else if arg != "" && value.(string) == "" {
+			c.arguments = append(c.arguments, arg)
+		} else if arg != "" && value.(string) != "" {
+			c.arguments = append(c.arguments, fmt.Sprintf("%s=%s", arg, value.(string)))
+		}
+	}
+
+	return c
+}
+
+func (c *ChromiumOptions) AddExtension(path string) *ChromiumOptions {
+	if !litedir.FileExists(path) {
+		log.Panicln("插件路径不存在")
+	} else {
+		c.extensions = append(c.extensions, path)
+	}
+	return c
+}
+
+func (c *ChromiumOptions) RemoveExtension() *ChromiumOptions {
+	c.extensions = []string{}
 	return c
 }
 
