@@ -123,6 +123,9 @@ func main(){
 	fmt.Println(literand.RandomChoice([]string{"a", "b", "c"}))
 	fmt.Println(literand.RandomChoice([]int64{1, 2, 3}))
 	fmt.Println(literand.RandomChoice([]float64{1.123, 2.223, 3.333}))
+	
+	fmt.Println(literand.SliceRemove([]string{"a", "b", "a", "c"}, "a"))
+	fmt.Println(literand.SliceRemove([]int{1, 2, 3, 4, 3}, 3))
 }
 ```
 
