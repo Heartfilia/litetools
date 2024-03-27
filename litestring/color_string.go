@@ -109,14 +109,19 @@ func parseStringWithTag(goal string) string {
 	return goal
 }
 
-func ColorString(goal, color string) string {
+func ColorString(goal string, color ...string) string {
 	// 仅支持 颜色 设置  其它样式不兼容
 	// 如果color传入为 空字符串 那么则表示 需要解析 goal里面是否有字符串颜色标签语法
-	if color == "" {
+	if color == nil || (len(color) <= 1 && color[0] == "") {
 		// 标签语法
 		return parseStringWithTag(goal)
 	} else {
 		// 直接整体换色
-		return totalReplace(goal, color)
+		realColor := ""
+		if len(color) >= 1 {
+			realColor = color[0]
+			return totalReplace(goal, realColor)
+		}
+		return parseStringWithTag(goal) // 一般不会走到这里来的
 	}
 }
