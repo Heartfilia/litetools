@@ -81,12 +81,14 @@ package main
 import (
     "fmt"
     "github.com/Heartfilia/litetools/litestring"
+    "github.com/Heartfilia/litetools/litestring/color"
 )
 
 func main(){
     fmt.Println(litestring.ColorString("<red>红色</red>还有其它颜色<cyan>其它颜色</cyan>还有一些错误测试<blue>错误的</yellow>", ""))
     fmt.Println(litestring.ColorString("整体替换颜色", "blue"))
     fmt.Println(litestring.ColorString("整体替换颜色", "黄"))
+    fmt.Println(litestring.ColorString("整体替换颜色", color.Yellow))
 }
 ```
 
@@ -105,8 +107,8 @@ func main() {
 	fmt.Println(litenet.GetUA("safari")) // 指定浏览器 或者系统
 	fmt.Println(litenet.GetUA("safari", "chrome", "linux")) // 从给定的参数里面随机
 	
-	fmt.Println(litenet.GetWAN())  // 还没弄 后续会调整用法
-	fmt.Println(litenet.GetLAN())  // 还没弄 后续会调整用法
+	fmt.Println(litenet.GetWAN())  // 
+	fmt.Println(litenet.GetLAN())  // 
 }
 
 
