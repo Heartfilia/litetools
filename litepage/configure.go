@@ -1,8 +1,7 @@
-package litebrowser
+package litepage
 
 import (
 	"fmt"
-	"github.com/Heartfilia/litetools/literand"
 	"github.com/Heartfilia/litetools/utils/litedir"
 	"log"
 	"strings"
@@ -127,9 +126,9 @@ func (c *ChromiumOptions) RemoveArgument(value string) *ChromiumOptions {
 		}
 	}
 
-	for _, del := range delList {
-		c.arguments = literand.SliceRemove(c.arguments, del)
-	}
+	//for _, del := range delList {
+	//	c.arguments = literand.SliceRemove(c.arguments, del)
+	//}
 	return c
 }
 

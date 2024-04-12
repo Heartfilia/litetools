@@ -1,4 +1,4 @@
-package litebrowser
+package litepage
 
 type WS struct {
 }
