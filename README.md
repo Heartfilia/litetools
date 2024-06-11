@@ -85,10 +85,13 @@ import (
 )
 
 func main(){
+	// 第二个位置不传入或者传入 "" 均表示 采用标签语法
+    fmt.Println(litestring.ColorString("<red>红色</red>还有其它颜色<cyan>其它颜色</cyan>还有一些错误测试<blue>错误的</yellow>"))
     fmt.Println(litestring.ColorString("<red>红色</red>还有其它颜色<cyan>其它颜色</cyan>还有一些错误测试<blue>错误的</yellow>", ""))
+	// 如果第一个位置写的标签语法 第二个位置又写上了颜色 以第二个位置为准....
     fmt.Println(litestring.ColorString("整体替换颜色", "blue"))
     fmt.Println(litestring.ColorString("整体替换颜色", "黄"))
-    fmt.Println(litestring.ColorString("整体替换颜色", color.Yellow))
+	// 如果第二个位置写超过 1个位置的颜色 只采用最先出现的颜色
 }
 ```
 
@@ -125,6 +128,9 @@ func main(){
 	fmt.Println(literand.RandomChoice([]string{"a", "b", "c"}))
 	fmt.Println(literand.RandomChoice([]int64{1, 2, 3}))
 	fmt.Println(literand.RandomChoice([]float64{1.123, 2.223, 3.333}))
+	
+	fmt.Println(literand.SliceRemove([]string{"a", "b", "a", "c"}, "a"))
+	fmt.Println(literand.SliceRemove([]int{1, 2, 3, 4, 3}, 3))
 }
 ```
 
