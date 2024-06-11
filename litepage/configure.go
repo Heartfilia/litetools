@@ -127,7 +127,7 @@ func (c *ChromiumOptions) RemoveArgument(value string) *ChromiumOptions {
 	}
 
 	//for _, del := range delList {
-	//	c.arguments = literand.SliceRemove(c.arguments, del)
+	//	c.arguments = liteslice.SliceRemove(c.arguments, del)
 	//}
 	return c
 }

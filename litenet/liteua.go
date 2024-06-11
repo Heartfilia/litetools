@@ -2,7 +2,7 @@ package litenet
 
 import (
 	"github.com/Heartfilia/litetools/litenet/ua"
-	"github.com/Heartfilia/litetools/literand"
+	"github.com/Heartfilia/litetools/liteslice"
 )
 
 func GetUA(options ...string) string {
@@ -13,7 +13,7 @@ func GetUA(options ...string) string {
 		if len(options) == 1 {
 			platform = options[0]
 		} else {
-			platform = literand.RandomChoice(options)
+			platform = liteslice.RandomChoice(options)
 		}
 	}
 

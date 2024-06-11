@@ -1,4 +1,4 @@
-package literand
+package liteslice
 
 import (
 	"math/rand"

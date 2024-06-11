@@ -1,7 +1,7 @@
 package ua
 
 import (
-	"github.com/Heartfilia/litetools/literand"
+	"github.com/Heartfilia/litetools/liteslice"
 	"strings"
 )
 
@@ -56,14 +56,14 @@ func Options(option string) string {
 			mc.OsType = "mac"
 		}
 	} else if isSystem(option) {
-		mc.Browser = literand.RandomChoice([]string{"chrome", "edge"})
+		mc.Browser = liteslice.RandomChoice([]string{"chrome", "edge"})
 		if option == "pc" {
-			mc.OsType = literand.RandomChoice([]string{"win", "mac", "linux"})
+			mc.OsType = liteslice.RandomChoice([]string{"win", "mac", "linux"})
 			if mc.OsType == "mac" {
-				mc.Browser = literand.RandomChoice([]string{"chrome", "edge", "safari"})
+				mc.Browser = liteslice.RandomChoice([]string{"chrome", "edge", "safari"})
 			}
 		} else if option == "mobile" {
-			mc.OsType = literand.RandomChoice([]string{"android", "ios", "harmonyos"})
+			mc.OsType = liteslice.RandomChoice([]string{"android", "ios", "harmonyos"})
 			if mc.OsType == "harmonyos" {
 				mc.OsType = "harmony"
 			}
@@ -78,8 +78,8 @@ func Options(option string) string {
 		}
 	} else {
 		// 否则直接从浏览器里面随机挑返回
-		mc.OsType = literand.RandomChoice([]string{"win", "mac", "linux"})
-		mc.Browser = literand.RandomChoice([]string{"chrome", "firefox", "edge"})
+		mc.OsType = liteslice.RandomChoice([]string{"win", "mac", "linux"})
+		mc.Browser = liteslice.RandomChoice([]string{"chrome", "firefox", "edge"})
 	}
 	return mc.choice()
 }
