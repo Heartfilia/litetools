@@ -77,7 +77,10 @@ func (r *Result) StringSlice() []string {
 }
 
 func (r *Result) String() string {
-	return fmt.Sprintf("%v", r.Value())
+	if r.Value() != nil {
+		return fmt.Sprintf("%v", r.Value())
+	}
+	return ""
 }
 
 func (r *Result) Int() int {
@@ -289,7 +292,7 @@ func (r *Result) Bool() bool {
 			otherBool = true
 		}
 	default:
-		if r.Value != nil {
+		if r.Value() != nil {
 			otherBool = true
 		}
 	}
@@ -398,45 +401,48 @@ func (r *resultCache) parse(rule string, lastKey bool) {
 			return
 		}
 		typeAny := reflect.TypeOf(nowObj)
-		objKind := typeAny.Kind()
-		switch objKind {
-		case reflect.Slice:
-			array := nowObj.([]any)
-			if numberInRule < 0 {
-				// 兼容 [-1]  [-2]
-				numberInRule += len(array)
+		if typeAny != nil {
+			objKind := typeAny.Kind()
+			switch objKind {
+			case reflect.Slice:
+				array := nowObj.([]any)
 				if numberInRule < 0 {
+					// 兼容 [-1]  [-2]
+					numberInRule += len(array)
+					if numberInRule < 0 {
+						r.Result = nil
+						r.OK = true
+						r.Error = errors.New(colorPanic(
+							fmt.Sprintf("runtime error: index out of range [%d] with length %d",
+								numberInRule-len(array), len(array)),
+						))
+						return
+					}
+				} else if numberInRule > len(array)-1 {
 					r.Result = nil
 					r.OK = true
 					r.Error = errors.New(colorPanic(
 						fmt.Sprintf("runtime error: index out of range [%d] with length %d",
-							numberInRule-len(array), len(array)),
+							numberInRule, len(array)),
 					))
 					return
 				}
-			} else if numberInRule > len(array)-1 {
-				r.Result = nil
-				r.OK = true
-				r.Error = errors.New(colorPanic(
-					fmt.Sprintf("runtime error: index out of range [%d] with length %d",
-						numberInRule, len(array)),
-				))
-				return
-			}
 
-			if array == nil || len(array)-1 < numberInRule {
-				r.Result = nil
-				r.OK = true
-				r.Error = errors.New(colorPanic("no slice or wrong extraction sequence number"))
-				return
-			}
-			r.BaseAny = array[numberInRule]
+				if array == nil || len(array)-1 < numberInRule {
+					r.Result = nil
+					r.OK = true
+					r.Error = errors.New(colorPanic("no slice or wrong extraction sequence number"))
+					return
+				}
+				r.BaseAny = array[numberInRule]
 
-			if lastKey {
-				r.Result = array[numberInRule]
+				if lastKey {
+					r.Result = array[numberInRule]
+				}
 			}
+		} else {
+			r.OK = true
 		}
-
 	} else if regRuleCache.keyWithArray(rule) {
 		// 如果当前目标key是 a[0]   a[1][2] 那么预期当前节点能获取到的样式应该是 map[string]any  需要拆分然后继续处理一次
 		//fmt.Println("当前格式是 keyWithArray:", rule)
@@ -455,14 +461,18 @@ func (r *resultCache) parse(rule string, lastKey bool) {
 		// 如果当前目标key是 a    那么预期当前节点能获取到的样式应该是 map[string]any
 		//fmt.Println("当前格式是 onlyKey     :", rule, r.BaseAny)
 		typeAny := reflect.TypeOf(nowObj)
-		objKind := typeAny.Kind()
-		switch objKind {
-		case reflect.Map:
-			value := nowObj.(map[string]any)[rule]
-			r.BaseAny = value
-			if lastKey {
-				r.Result = value
+		if typeAny != nil {
+			objKind := typeAny.Kind()
+			switch objKind {
+			case reflect.Map:
+				value := nowObj.(map[string]any)[rule]
+				r.BaseAny = value
+				if lastKey {
+					r.Result = value
+				}
 			}
+		} else {
+			r.OK = true
 		}
 	} else {
 		log.Fatal("没有匹配到的格式是:", rule, lastKey)
