@@ -81,6 +81,7 @@ package main
 import (
     "fmt"
     "github.com/Heartfilia/litetools/litestring"
+    "github.com/Heartfilia/litetools/litestring/color"
 )
 
 func main(){
@@ -109,8 +110,8 @@ func main() {
 	fmt.Println(litenet.GetUA("safari")) // 指定浏览器 或者系统
 	fmt.Println(litenet.GetUA("safari", "chrome", "linux")) // 从给定的参数里面随机
 	
-	fmt.Println(litenet.GetWAN())  // 还没弄 后续会调整用法
-	fmt.Println(litenet.GetLAN())  // 还没弄 后续会调整用法
+	fmt.Println(litenet.GetWAN())  // 
+	fmt.Println(litenet.GetLAN())  // 
 }
 
 

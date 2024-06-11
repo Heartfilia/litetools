@@ -1,46 +1,37 @@
 package litestring
 
 import (
+	myColor "github.com/Heartfilia/litetools/litestring/color"
 	"regexp"
 	"strings"
 )
 
 // 颜色表
-const (
-	base   string = "\033[0m"
-	red    string = "\033[31m"
-	green  string = "\033[32m"
-	yellow string = "\033[33m"
-	blue   string = "\033[34m"
-	purple string = "\033[35m"
-	cyan   string = "\033[36m"
-	white  string = "\033[37m"
-)
 
 var reflectColor = map[string]string{
-	"红":      red,
-	"红色":     red,
-	"RED":    red,
-	"绿":      green,
-	"绿色":     green,
-	"GREEN":  green,
-	"黄":      yellow,
-	"黄色":     yellow,
-	"YELLOW": yellow,
-	"蓝":      blue,
-	"蓝色":     blue,
-	"BLUE":   blue,
-	"紫":      purple,
-	"紫色":     purple,
-	"PURPLE": purple,
-	"青":      cyan,
-	"青色":     cyan,
-	"靛":      cyan,
-	"靛色":     cyan,
-	"CYAN":   cyan,
-	"白":      white,
-	"白色":     white,
-	"WHITE":  white,
+	"红":      myColor.Red,
+	"红色":     myColor.Red,
+	"RED":    myColor.Red,
+	"绿":      myColor.Green,
+	"绿色":     myColor.Green,
+	"GREEN":  myColor.Green,
+	"黄":      myColor.Yellow,
+	"黄色":     myColor.Yellow,
+	"YELLOW": myColor.Yellow,
+	"蓝":      myColor.Blue,
+	"蓝色":     myColor.Blue,
+	"BLUE":   myColor.Blue,
+	"紫":      myColor.Purple,
+	"紫色":     myColor.Purple,
+	"PURPLE": myColor.Purple,
+	"青":      myColor.Cyan,
+	"青色":     myColor.Cyan,
+	"靛":      myColor.Cyan,
+	"靛色":     myColor.Cyan,
+	"CYAN":   myColor.Cyan,
+	"白":      myColor.White,
+	"白色":     myColor.White,
+	"WHITE":  myColor.White,
 }
 
 func isValidColor(color string) (string, bool) {
@@ -65,16 +56,45 @@ func (p *pattern) initPattern() {
 	p.BlockPatternTail = tailPattern
 }
 
-func totalReplace(goal, color string) string {
-	color = strings.ToUpper(color)
-	newColor, ok := isValidColor(color)
-	if !ok {
-		return goal
+func isOriginal(color string) (ok bool) {
+	switch color {
+	case myColor.Red:
+		ok = true
+	case myColor.Green:
+		ok = true
+	case myColor.Yellow:
+		ok = true
+	case myColor.Blue:
+		ok = true
+	case myColor.Purple:
+		ok = true
+	case myColor.Cyan:
+		ok = true
+	case myColor.White:
+		ok = true
+	case myColor.Base:
+		ok = true
 	}
+	return
+}
+
+func totalReplace(goal, color string) string {
+	var newColor string
+	if !isOriginal(color) {
+		color = strings.ToUpper(color)
+		colorString, ok := isValidColor(color)
+		if !ok {
+			return goal
+		}
+		newColor = colorString
+	} else {
+		newColor = color
+	}
+
 	obj := strings.Builder{}
 	obj.WriteString(newColor)
 	obj.WriteString(goal)
-	obj.WriteString(base)
+	obj.WriteString(myColor.Base)
 	return obj.String()
 }
 
