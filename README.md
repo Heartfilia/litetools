@@ -81,23 +81,22 @@ package main
 
 import (
 	"fmt"
-	"github.com/Heartfilia/litetools/litestring"
-	"github.com/Heartfilia/litetools/litestring/color"
+	"github.com/Heartfilia/litetools/litestr"
 	"log"
 )
 
 func main() {
 	// 第二个位置不传入或者传入 "" 均表示 采用标签语法
-	fmt.Println(litestring.ColorString("<red>红色</red>还有其它颜色<cyan>其它颜色</cyan>还有一些错误测试<blue>错误的</yellow>"))
-	fmt.Println(litestring.ColorString("<red>红色</red>还有其它颜色<cyan>其它颜色</cyan>还有一些错误测试<blue>错误的</yellow>", ""))
+	fmt.Println(litestr.ColorString("<red>红色</red>还有其它颜色<cyan>其它颜色</cyan>还有一些错误测试<blue>错误的</yellow>"))
+	fmt.Println(litestr.ColorString("<red>红色</red>还有其它颜色<cyan>其它颜色</cyan>还有一些错误测试<blue>错误的</yellow>", ""))
 	// 如果第一个位置写的标签语法 第二个位置又写上了颜色 以第二个位置为准....
-	fmt.Println(litestring.ColorString("整体替换颜色", "blue"))
-	fmt.Println(litestring.ColorString("整体替换颜色", "黄"))
+	fmt.Println(litestr.ColorString("整体替换颜色", "blue"))
+	fmt.Println(litestr.ColorString("整体替换颜色", "黄"))
 	// 如果第二个位置写超过 1个位置的颜色 只采用最先出现的颜色
 
 	// 新增 日志标签 建议配合 log 使用 如下 [D I S W E] -> [debug info success warning error]
-	log.Println(litestring.D(), "这里再写自己的日志")
-	log.Printf("%s %s", litestring.E(), "如果是f的话需要这样子写 要不然有换行异常\n")
+	log.Println(litestr.D(), "这里再写自己的日志")
+	log.Printf("%s %s", litestr.E(), "如果是f的话需要这样子写 要不然有换行异常\n")
 }
 ```
 

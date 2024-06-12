@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/Heartfilia/litetools/litejson"
 	"github.com/Heartfilia/litetools/litenet"
-	"github.com/Heartfilia/litetools/litestring"
+	"github.com/Heartfilia/litetools/litestr"
 	"github.com/Heartfilia/litetools/litetime"
 	"log"
 )
@@ -61,17 +61,17 @@ func testNet() {
 }
 
 func testString() {
-	fmt.Println(litestring.ColorString("<red>红色</red>还有其它颜色<cyan>其它颜色</cyan>还有一些错误测试<blue>错误的</yellow>", ""))
-	fmt.Println(litestring.ColorString("整体替换颜色", "blue"))
-	fmt.Println(litestring.ColorString("整体替换颜色", "黄"))
-	log.Println(litestring.S(), "测试S的状态")
+	fmt.Println(litestr.ColorString("<red>红色</red>还有其它颜色<cyan>其它颜色</cyan>还有一些错误测试<blue>错误的</yellow>", ""))
+	fmt.Println(litestr.ColorString("整体替换颜色", "blue"))
+	fmt.Println(litestr.ColorString("整体替换颜色", "黄"))
+	log.Println(litestr.S(), "测试S的状态")
 }
 
 func testTag() {
 
-	log.Println(litestring.D(), "测试D的状态")
+	log.Println(litestr.D(), "测试D的状态")
 	testString()
-	log.Println(litestring.E(), "测试E的状态")
+	log.Println(litestr.E(), "测试E的状态")
 }
 
 func main() {

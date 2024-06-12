@@ -5,6 +5,12 @@ import (
 	netHTTP "net/http"
 )
 
+/*
+这个项目的宗旨：不是为了创造一个框架，而是创建一个便携请求
+核心部分均采用系统的 net  之类的这种包 减少不必要的兼容麻烦
+（更加是为了自己以后接单啥的，能写请求更快，目前市面上的感觉都用不习惯
+*/
+
 type Session struct {
 	MaxRetry int // max retry, default 1
 	client   *netHTTP.Client

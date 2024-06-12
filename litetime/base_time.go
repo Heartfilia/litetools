@@ -2,7 +2,7 @@ package litetime
 
 import (
 	"fmt"
-	"github.com/Heartfilia/litetools/litestring"
+	"github.com/Heartfilia/litetools/litestr"
 	"github.com/Heartfilia/litetools/litetime/fmt_time"
 	"log"
 	"regexp"
@@ -352,7 +352,7 @@ func Time(option interface{}) *Result {
 			fmtMode(&nowTimeStruct, r)
 		}
 	default:
-		log.Printf("[%s] option only support [litetime.Option{} or nil], but get [%v] \n", litestring.ColorString("ERROR", "red"), option)
+		log.Printf("[%s] option only support [litetime.Option{} or nil], but get [%v] \n", litestr.ColorString("ERROR", "red"), option)
 	}
 	return r
 }

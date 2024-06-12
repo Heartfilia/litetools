@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Heartfilia/litetools/litestring"
+	"github.com/Heartfilia/litetools/litestr"
 	"github.com/Heartfilia/litetools/utils/litedir"
 	"log"
 	"reflect"
@@ -308,7 +308,7 @@ func (r *Result) BoolSlice() []bool {
 }
 
 func colorPanic(msg string) string {
-	return litestring.ColorString("panic: ", "red") + msg
+	return litestr.ColorString("panic: ", "red") + msg
 }
 
 func replaceTo(str string, mode int) string {

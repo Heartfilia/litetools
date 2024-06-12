@@ -1,4 +1,4 @@
-package litestring
+package litestr
 
 import (
 	"fmt"

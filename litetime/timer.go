@@ -1,7 +1,7 @@
 package litetime
 
 import (
-	"github.com/Heartfilia/litetools/litestring"
+	"github.com/Heartfilia/litetools/litestr"
 	"log"
 	"time"
 )
@@ -9,6 +9,6 @@ import (
 func Timer(name string) func() {
 	startTime := time.Now()
 	return func() {
-		log.Printf("[ %s ] took --> %v\n", litestring.ColorString(name, "green"), time.Since(startTime))
+		log.Printf("[ %s ] took --> %v\n", litestr.ColorString(name, "green"), time.Since(startTime))
 	}
 }
