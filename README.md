@@ -151,21 +151,21 @@ func main(){
 
     baseJson := `{"a-x":{"b_z":[{"c":["x","y","z"]},{"d":[[3,4,5],[6,7,8]]}]}}`
     
-    value, _ := litejson.TryGet(baseJson, "a-x.b_z[0].c")  // 直接用 . 提取
-    fmt.Println(value.Value())                                 // 不确定格式的 可以用 Value 取值
-    value, _ = litejson.TryGet(baseJson, "a-x.b_z[0].e|a.b_z[0].d[-1][-1]")  // 可以用 | 来分割多个rule
-    value, _ = litejson.TryGet(baseJson, "a-x.b_z[1].d[-1][-1]")             // 可以支持golang不支持的 负数的值的提取
-    fmt.Println(value.Int())                                 // 确定格式的可以指定某个输出格式
-    value, _ = litejson.TryGet(baseJson, "a-x.b_z[0].c[-2]")
-    fmt.Println(value.String())                              // String 是任意类型都可以转成string样式
-    value, err := litejson.TryGet(baseJson, "a-x.b_z[6].c[0]")             // 错误的提取可以从两个地方提取
-    fmt.Println(value.Error)
-    fmt.Println(err) 
+    cmd := litejson.TryGet(baseJson, "a-x.b_z[0].c")  // 直接用 . 提取
+    fmt.Println(cmd.Value())                                 // 不确定格式的 可以用 Value 取值
+    cmd = litejson.TryGet(baseJson, "a-x.b_z[0].e|a.b_z[0].d[-1][-1]")  // 可以用 | 来分割多个rule
+    cmd = litejson.TryGet(baseJson, "a-x.b_z[1].d[-1][-1]")             // 可以支持golang不支持的 负数的值的提取
+    fmt.Println(cmd.Int())                                 // 确定格式的可以指定某个输出格式
+    cmd = litejson.TryGet(baseJson, "a-x.b_z[0].c[-2]")
+    fmt.Println(cmd.String())                              // String 是任意类型都可以转成string样式
+    cmd := litejson.TryGet(baseJson, "a-x.b_z[6].c[0]")             // 错误的提取可以从两个地方提取
+    fmt.Println(cmd.Error())
+    fmt.Println(cmd.Err) 
 	
     // 支持了第一个位置填入json文件的路径
-    value, _ := litejson.TryGet("your path/package.json", "dependencies.abc")
+    cmdOption := litejson.TryGet("your path/package.json", "dependencies.abc")
     // 支持了常用的 一维数组 结果
-	for _, v := range value.StringSlice() {
+	for _, v := range cmdOption.StringSlice() {
         fmt.Printf("%T --> %v\n", v, v)
     }
 }

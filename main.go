@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Heartfilia/litetools/litejson"
 	"github.com/Heartfilia/litetools/litenet"
+	"github.com/Heartfilia/litetools/litereq"
 	"github.com/Heartfilia/litetools/litestr"
 	"github.com/Heartfilia/litetools/litetime"
 	"log"
@@ -68,10 +69,15 @@ func testStr() {
 }
 
 func testTag() {
-
 	log.Println(litestr.D(), "测试D的状态")
 	testStr()
 	log.Println(litestr.E(), "测试E的状态")
+}
+
+func testReq() {
+	session := litereq.NewSession()
+	response := session.Do("http://httpbin.org/get", nil)
+	fmt.Println(response.Text)
 }
 
 func main() {
@@ -79,5 +85,6 @@ func main() {
 	//testJson()
 	//testNet()
 	//testStr()
-	testTag()
+	//testTag()
+	testReq()
 }
