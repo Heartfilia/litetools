@@ -1,4 +1,7 @@
 package opt
 
-type Cookies struct {
+import netHTTP "net/http"
+
+func NewCookies() *netHTTP.Cookie {
+	return &netHTTP.Cookie{}
 }

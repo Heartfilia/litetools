@@ -17,7 +17,8 @@ type Session struct {
 	MaxRetry int  // max retry, default 1
 	HTTP2    bool // default false   先不忙支持 后面我会弄的
 	client   *netHTTP.Client
-	headers  *netHTTP.Header // 全局headers
+	headers  *netHTTP.Header   // 全局headers
+	cookies  []*netHTTP.Cookie // 全局的cookies
 	//globalCookie  // 需要记录下来全局的cookie信息
 }
 
@@ -33,7 +34,7 @@ func (s *Session) Do(url string, option *opt.Option) *Response {
 		option = opt.NewOption()
 	}
 
-	return &Response{}
+	return s.sendRequest(url, option)
 }
 
 func (s *Session) sendRequest(url string, option *opt.Option) *Response {
@@ -63,7 +64,34 @@ func (s *Session) SetHeaders(header any) {
 	case *netHTTP.Header:
 		s.headers = header.(*netHTTP.Header)
 	default:
-		log.Panicln("Headers only support <>")
+		log.Panicln("Headers only support <*http.Header || map[string]string>")
+	}
+}
+
+func (s *Session) SetCookies(domain string, cookie any) {
+	// 这个方法是直接操作类似 option里面的操作了
+	if s.cookies == nil {
+		s.cookies = make([]*netHTTP.Cookie, 0)
+	}
+	switch cookie.(type) {
+	case map[string]string:
+		for key, value := range cookie.(map[string]string) {
+			baseCookies := opt.NewCookies()
+			baseCookies.Name = key
+			baseCookies.Value = value
+			baseCookies.Path = "/"
+			baseCookies.Domain = domain
+			s.cookies = append(s.cookies, baseCookies)
+		}
+	case []*netHTTP.Cookie:
+		s.cookies = cookie.([]*netHTTP.Cookie)
+	case *netHTTP.Cookie:
+		s.cookies = append(s.cookies, cookie.(*netHTTP.Cookie))
+	case string:
+		// if string -->  k=v; k=v  --> map[string]string --> save
+
+	default:
+		log.Panicln("Headers only support <[]*http.Cookie || *http.Cookie || map[string]string || string>")
 	}
 }
 
