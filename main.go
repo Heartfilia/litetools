@@ -43,8 +43,8 @@ func testJson() {
 	//fmt.Println(value.Error)
 	//fmt.Println(err)
 
-	value, _ := litejson.TryGet("your path/package.json", "dependencies.abc")
-	for _, v := range value.StringSlice() {
+	cmd := litejson.TryGet("your path/package.json", "dependencies.abc")
+	for _, v := range cmd.StringSlice() {
 		fmt.Printf("%T --> %v\n", v, v)
 	}
 }
