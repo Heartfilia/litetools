@@ -60,7 +60,7 @@ func testNet() {
 	fmt.Println(litenet.GetUA("chrome", "edge"))
 }
 
-func testString() {
+func testStr() {
 	fmt.Println(litestr.ColorString("<red>红色</red>还有其它颜色<cyan>其它颜色</cyan>还有一些错误测试<blue>错误的</yellow>", ""))
 	fmt.Println(litestr.ColorString("整体替换颜色", "blue"))
 	fmt.Println(litestr.ColorString("整体替换颜色", "黄"))
@@ -70,7 +70,7 @@ func testString() {
 func testTag() {
 
 	log.Println(litestr.D(), "测试D的状态")
-	testString()
+	testStr()
 	log.Println(litestr.E(), "测试E的状态")
 }
 
@@ -78,6 +78,6 @@ func main() {
 	//testTime()
 	//testJson()
 	//testNet()
-	//testString()
+	//testStr()
 	testTag()
 }

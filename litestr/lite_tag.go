@@ -36,6 +36,9 @@ func getFunName(l int) (string, int) {
 	name := runtime.FuncForPC(pc).Name()
 	split := strings.Split(name, ".")
 	//fmt.Printf("第%d层函数,函数名称是:%s\n", l, name)
-	//return split[len(split)-1]
-	return split[len(split)-1], line
+	if len(split) > 0 {
+		return split[len(split)-1], line
+	} else {
+		return "", 0
+	}
 }

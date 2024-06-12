@@ -1,7 +1,9 @@
 package litereq
 
 import (
+	"errors"
 	"github.com/Heartfilia/litetools/litereq/opt"
+	"log"
 	netHTTP "net/http"
 )
 
@@ -12,9 +14,10 @@ import (
 */
 
 type Session struct {
-	MaxRetry int // max retry, default 1
+	MaxRetry int  // max retry, default 1
+	HTTP2    bool // default false   先不忙支持 后面我会弄的
 	client   *netHTTP.Client
-	headers  map[string]string // 全局headers
+	headers  *netHTTP.Header // 全局headers
 	//globalCookie  // 需要记录下来全局的cookie信息
 }
 
@@ -42,7 +45,34 @@ func (s *Session) sendRequest(url string, option *opt.Option) *Response {
 			break
 		}
 	}
+	if suc == false {
+		response.err = errors.New("bad requests")
+	}
 	return response
+}
+
+func (s *Session) SetHeaders(header any) {
+	// 这个方法是直接操作类似 option里面的操作了
+	switch header.(type) {
+	case map[string]string:
+		baseHeaders := opt.NewHeaders()
+		for key, value := range header.(map[string]string) {
+			baseHeaders.Set(key, value)
+		}
+		s.headers = baseHeaders
+	case *netHTTP.Header:
+		s.headers = header.(*netHTTP.Header)
+	default:
+		log.Panicln("Headers only support <>")
+	}
+}
+
+func (s *Session) SetRetry(retry int) {
+	s.MaxRetry = retry
+}
+
+func (s *Session) SetHTTP2(h2 bool) {
+	s.HTTP2 = h2
 }
 
 func (s *Session) storeCookie() {
