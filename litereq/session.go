@@ -14,8 +14,8 @@ import (
 */
 
 type Session struct {
-	MaxRetry int  // max retry, default 1
-	HTTP2    bool // default false   先不忙支持 后面我会弄的
+	maxRetry int  // max retry, default 1
+	http2    bool // default false   先不忙支持 后面我会弄的
 	client   *netHTTP.Client
 	headers  *netHTTP.Header   // 全局headers
 	cookies  []*netHTTP.Cookie // 全局的cookies
@@ -24,7 +24,7 @@ type Session struct {
 
 func NewSession() *Session {
 	return &Session{
-		MaxRetry: 1,
+		maxRetry: 1,
 		client:   &netHTTP.Client{},
 	}
 }
@@ -40,7 +40,7 @@ func (s *Session) Do(url string, option *opt.Option) *Response {
 func (s *Session) sendRequest(url string, option *opt.Option) *Response {
 	response := NewResponse()
 	suc := false
-	for r := 0; r < s.MaxRetry; r++ {
+	for r := 0; r < s.maxRetry; r++ {
 
 		if suc == true {
 			break
@@ -102,12 +102,12 @@ func (s *Session) SetCookies(domain string, cookie any) *Session {
 }
 
 func (s *Session) SetRetry(retry int) *Session {
-	s.MaxRetry = retry
+	s.maxRetry = retry
 	return s
 }
 
 func (s *Session) SetHTTP2(h2 bool) *Session {
-	s.HTTP2 = h2
+	s.http2 = h2
 	return s
 }
 

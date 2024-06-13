@@ -5,6 +5,7 @@ import (
 	"github.com/Heartfilia/litetools/litejson"
 	"github.com/Heartfilia/litetools/litenet"
 	"github.com/Heartfilia/litetools/litereq"
+	"github.com/Heartfilia/litetools/litereq/opt"
 	"github.com/Heartfilia/litetools/litestr"
 	"github.com/Heartfilia/litetools/litetime"
 	"log"
@@ -76,7 +77,11 @@ func testTag() {
 
 func testReq() {
 	session := litereq.NewSession()
-	response := session.Do("http://httpbin.org/get", nil)
+	option := opt.NewOption()
+	option.SetMethod("POST").SetVerify(false).SetRedirects(true)
+	response := session.SetRetry(5).SetCookies("httpbin.org", map[string]string{"a": "1"}).SetHeaders(
+		map[string]string{"user-agent": "litetools"},
+	).Do("http://httpbin.org/get", option)
 	fmt.Println(response.Text)
 }
 
