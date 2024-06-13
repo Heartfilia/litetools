@@ -56,7 +56,7 @@ func (s *Session) handle3XXResponse() {
 	// 处理 30X 的响应
 }
 
-func (s *Session) SetHeaders(header any) {
+func (s *Session) SetHeaders(header any) *Session {
 	// 这个方法是直接操作类似 option里面的操作了
 	switch header.(type) {
 	case map[string]string:
@@ -70,9 +70,10 @@ func (s *Session) SetHeaders(header any) {
 	default:
 		log.Panicln("Headers only support <*http.Header || map[string]string>")
 	}
+	return s
 }
 
-func (s *Session) SetCookies(domain string, cookie any) {
+func (s *Session) SetCookies(domain string, cookie any) *Session {
 	// 这个方法是直接操作类似 option里面的操作了
 	if s.cookies == nil {
 		s.cookies = make([]*netHTTP.Cookie, 0)
@@ -97,14 +98,17 @@ func (s *Session) SetCookies(domain string, cookie any) {
 	default:
 		log.Panicln("Cookies only support <[]*http.Cookie || *http.Cookie || map[string]string || string>")
 	}
+	return s
 }
 
-func (s *Session) SetRetry(retry int) {
+func (s *Session) SetRetry(retry int) *Session {
 	s.MaxRetry = retry
+	return s
 }
 
-func (s *Session) SetHTTP2(h2 bool) {
+func (s *Session) SetHTTP2(h2 bool) *Session {
 	s.HTTP2 = h2
+	return s
 }
 
 func (s *Session) storeCookie() {

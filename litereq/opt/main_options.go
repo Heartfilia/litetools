@@ -33,15 +33,17 @@ func NewOption() *Option {
 	}
 }
 
-func (o *Option) SetRedirects(allow bool) {
+func (o *Option) SetRedirects(allow bool) *Option {
 	o.AllowRedirects = allow
+	return o
 }
 
-func (o *Option) SetVerify(enable bool) {
+func (o *Option) SetVerify(enable bool) *Option {
 	o.Verify = enable
+	return o
 }
 
-func (o *Option) SetMethod(method string) {
+func (o *Option) SetMethod(method string) *Option {
 	md := strings.ToUpper(method)
 	if md == OPT {
 		o.Method = "OPTIONS"
@@ -64,4 +66,5 @@ func (o *Option) SetMethod(method string) {
 	} else {
 		o.Method = "GET"
 	}
+	return o
 }
