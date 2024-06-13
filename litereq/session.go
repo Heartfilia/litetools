@@ -8,7 +8,7 @@ import (
 )
 
 /*
-这个项目的宗旨：不是为了创造一个框架，而是创建一个便携请求
+这个项目的宗旨：不是为了创造一个框架，而是创建一个便携整体流程的通用请求
 核心部分均采用系统的 net  之类的这种包 减少不必要的兼容麻烦
 （更加是为了自己以后接单啥的，能写请求更快，目前市面上的感觉都用不习惯
 */
@@ -52,6 +52,10 @@ func (s *Session) sendRequest(url string, option *opt.Option) *Response {
 	return response
 }
 
+func (s *Session) handle3XXResponse() {
+	// 处理 30X 的响应
+}
+
 func (s *Session) SetHeaders(header any) {
 	// 这个方法是直接操作类似 option里面的操作了
 	switch header.(type) {
@@ -91,7 +95,7 @@ func (s *Session) SetCookies(domain string, cookie any) {
 		// if string -->  k=v; k=v  --> map[string]string --> save
 
 	default:
-		log.Panicln("Headers only support <[]*http.Cookie || *http.Cookie || map[string]string || string>")
+		log.Panicln("Cookies only support <[]*http.Cookie || *http.Cookie || map[string]string || string>")
 	}
 }
 
