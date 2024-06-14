@@ -16,6 +16,7 @@ import (
 type Session struct {
 	maxRetry int  // max retry, default 1
 	http2    bool // default false   先不忙支持 后面我会弄的
+	verbose  bool // default false 就是用于打印详细日志的
 	client   *netHTTP.Client
 	headers  *netHTTP.Header   // 全局headers
 	cookies  []*netHTTP.Cookie // 全局的cookies
@@ -25,6 +26,8 @@ type Session struct {
 func NewSession() *Session {
 	return &Session{
 		maxRetry: 1,
+		verbose:  false,
+		http2:    false,
 		client:   &netHTTP.Client{},
 	}
 }
@@ -42,6 +45,9 @@ func (s *Session) sendRequest(url string, option *opt.Option) *Response {
 	suc := false
 	for r := 0; r < s.maxRetry; r++ {
 
+		if s.verbose {
+			// 这里是在过程中遇到的报错打印出来
+		}
 		if suc == true {
 			break
 		}
@@ -102,12 +108,20 @@ func (s *Session) SetCookies(domain string, cookie any) *Session {
 }
 
 func (s *Session) SetRetry(retry int) *Session {
+	if retry < 1 {
+		retry = 1 // 如果设置是0或者负数 那么就改为1
+	}
 	s.maxRetry = retry
 	return s
 }
 
 func (s *Session) SetHTTP2(h2 bool) *Session {
 	s.http2 = h2
+	return s
+}
+
+func (s *Session) SetVerbose(verbose bool) *Session {
+	s.verbose = verbose
 	return s
 }
 
