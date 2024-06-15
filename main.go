@@ -63,10 +63,15 @@ func testNet() {
 }
 
 func testStr() {
-	fmt.Println(litestr.ColorString("<red>红色</red>还有其它颜色<cyan>其它颜色</cyan>还有一些错误测试<blue>错误的</yellow>", ""))
-	fmt.Println(litestr.ColorString("整体替换颜色", "blue"))
-	fmt.Println(litestr.ColorString("整体替换颜色", "黄"))
-	log.Println(litestr.S(), "测试S的状态")
+	//fmt.Println(litestr.ColorString("<red>红色</red>还有其它颜色<cyan>其它颜色</cyan>还有一些错误测试<blue>错误的</yellow>", ""))
+	//fmt.Println(litestr.ColorString("整体替换颜色", "blue"))
+	//fmt.Println(litestr.ColorString("整体替换颜色", "黄"))
+	//log.Println(litestr.S(), "测试S的状态")
+
+	res := litestr.CookieStringToMap("x-auth-token=9e712b07dc404fe7b384e7f3dce7bbba; x-auth-app=Demo; x-auth-brand=; client_version=5.2.2.123; client_build_version=95228; client_flags=tabs")
+	fmt.Println(res)
+	newRes := litestr.CookieMapToString(res)
+	fmt.Println(newRes)
 }
 
 func testTag() {
@@ -79,9 +84,10 @@ func testReq() {
 	session := litereq.NewSession()
 	option := opt.NewOption()
 	option.SetMethod("POST").SetVerify(false).SetRedirects(true)
-	response := session.SetRetry(5).SetCookies("httpbin.org", map[string]string{"a": "1"}).SetHeaders(
+
+	response := session.SetVerbose(true).SetRetry(5).SetCookies(map[string]string{"a": "1"}).SetHeaders(
 		map[string]string{"user-agent": "litetools"},
-	).Do("http://httpbin.org/get", option)
+	).SetOption(option).Do("http://httpbin.org/get")
 	fmt.Println(response.Text)
 }
 

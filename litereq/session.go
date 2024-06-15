@@ -3,6 +3,7 @@ package litereq
 import (
 	"errors"
 	"github.com/Heartfilia/litetools/litereq/opt"
+	"github.com/Heartfilia/litetools/litestr"
 	"log"
 	netHTTP "net/http"
 )
@@ -10,19 +11,18 @@ import (
 /*
 这个项目的宗旨：不是为了创造一个框架，而是创建一个便携整体流程的通用请求
 核心部分均采用系统的 net  之类的这种包 减少不必要的兼容麻烦
-（更加是为了自己以后接单啥的，能写请求更快，目前市面上的感觉都用不习惯
+（更加是为了自己以后能写请求更快，目前市面上的感觉都用不习惯
 */
 
 type Session struct {
 	maxRetry     int  // max retry, default 1
-	http2        bool // default false   先不忙支持 后面我会弄的
+	http2        bool // default false --> 先不忙支持 后面我会弄的
 	verbose      bool // default false 就是用于打印详细日志的
 	option       *opt.Option
 	client       *netHTTP.Client
 	headers      *netHTTP.Header   // 全局headers
 	cookies      []*netHTTP.Cookie // 全局的cookies
 	_tempCookies any               // 用于临时记录
-	//globalCookie  // 需要记录下来全局的cookie信息
 }
 
 func NewSession() *Session {
@@ -73,17 +73,19 @@ func (s *Session) handle3XXResponse() {
 
 func (s *Session) SetHeaders(header any) *Session {
 	// 这个方法是直接操作类似 option里面的操作了
-	switch header.(type) {
-	case map[string]string:
-		baseHeaders := opt.NewHeaders()
-		for key, value := range header.(map[string]string) {
-			baseHeaders.Set(key, value)
+	if header != nil {
+		switch header.(type) {
+		case map[string]string:
+			baseHeaders := opt.NewHeaders()
+			for key, value := range header.(map[string]string) {
+				baseHeaders.Set(key, value)
+			}
+			s.headers = baseHeaders
+		case *netHTTP.Header:
+			s.headers = header.(*netHTTP.Header)
+		default:
+			log.Panicln("Headers only support <*http.Header || map[string]string>")
 		}
-		s.headers = baseHeaders
-	case *netHTTP.Header:
-		s.headers = header.(*netHTTP.Header)
-	default:
-		log.Panicln("Headers only support <*http.Header || map[string]string>")
 	}
 	return s
 }
@@ -116,8 +118,15 @@ func (s *Session) setCookies(rawUrl string) *Session {
 		case *netHTTP.Cookie:
 			s.cookies = append(s.cookies, cookie.(*netHTTP.Cookie))
 		case string:
-			// if string -->  k=v; k=v  --> map[string]string --> save
-
+			mapCookie := litestr.CookieStringToMap(cookie.(string))
+			for key, value := range mapCookie {
+				baseCookies := opt.NewCookies()
+				baseCookies.Name = key
+				baseCookies.Value = value
+				baseCookies.Path = "/"
+				baseCookies.Domain = domain
+				s.cookies = append(s.cookies, baseCookies)
+			}
 		default:
 			log.Panicln("Cookies only support <[]*http.Cookie || *http.Cookie || map[string]string || string>")
 		}

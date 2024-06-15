@@ -1,8 +1,6 @@
 package litereq
 
-import (
-	netURL "net/url"
-)
+import netURL "net/url"
 
 func parseDomain(rawURL string) string {
 	parsedURL, err := netURL.Parse(rawURL)

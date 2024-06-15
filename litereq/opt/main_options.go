@@ -26,6 +26,7 @@ type Option struct {
 }
 
 func NewOption() *Option {
+	//这个是控制单次请求的一些东西，部分参数会和全局重复 优先级为这里优先
 	return &Option{
 		method:         "GET",
 		allowRedirects: true,
