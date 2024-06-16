@@ -12,7 +12,7 @@ import (
 )
 
 func testTime() {
-	defer litetime.Timer("main")()
+	defer litetime.Timer()()
 	//t := litetime.Option{
 	//	Unit:   "ms",
 	//	Fmt:    true,
@@ -81,13 +81,14 @@ func testTag() {
 }
 
 func testReq() {
+	defer litetime.Timer()()
 	session := litereq.NewSession()
 	option := opt.NewOption()
-	option.SetMethod("POST").SetVerify(false).SetRedirects(true)
+	option.SetMethod("GET").SetVerify(false).SetRedirects(true).SetCookies(map[string]string{"b": "", "d": "666"})
 
 	response := session.SetVerbose(true).SetRetry(5).SetCookies(map[string]string{"a": "1"}).SetHeaders(
-		map[string]string{"user-agent": "litetools"},
-	).SetOption(option).Do("http://httpbin.org/get")
+		map[string]string{"user-agent": "litetools V2"},
+	).Do("http://httpbin.org/get", option)
 	fmt.Println(response.Text)
 }
 

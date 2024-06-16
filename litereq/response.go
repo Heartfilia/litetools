@@ -7,7 +7,7 @@ type Response struct {
 	StatusCode int
 	Body       []byte
 	Text       string
-	Headers    *netHTTP.Header
+	Headers    netHTTP.Header
 	Ctx        *Context
 	err        error // 记录错误详情
 }

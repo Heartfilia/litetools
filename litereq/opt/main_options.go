@@ -1,6 +1,8 @@
 package opt
 
 import (
+	"github.com/Heartfilia/litetools/litestr"
+	"log"
 	netHTTP "net/http"
 	"strings"
 )
@@ -9,20 +11,22 @@ import (
 // 先把基础的一些配置开发了 其它配置后面再优化添加
 
 type Option struct {
-	params         string          // 先占位 后续更新
-	headers        *netHTTP.Header // 先占位 后续更新
-	cookies        *netHTTP.Cookie // 先占位 后续更新
-	data           string          // 先占位 后续更新
-	json           string          // 先占位 后续更新
-	verify         bool            // 默认true
-	files          string          // 先占位 后续更新
-	proxy          string          // 先占位 后续更新
-	method         string          // 默认GET -> 通过 option.SetMethod("POST")调整
-	timeout        int             // ms  单位为毫秒
-	allowRedirects bool            // 是否允许重定向，默认允许
-	stream         string          // 先占位 后续更新
-	auth           string          // 先占位 后续更新
-	cert           string          // 先占位 后续更新
+	domain         string
+	params         string // 先占位 后续更新
+	headers        *netHTTP.Header
+	_tempCookies   any
+	cookies        []*netHTTP.Cookie
+	data           string // 先占位 后续更新
+	json           string // 先占位 后续更新
+	verify         bool   // 默认true
+	files          string // 先占位 后续更新
+	proxy          string // 先占位 后续更新
+	method         string // 默认GET -> 通过 option.SetMethod("POST")调整
+	timeout        int    // ms  单位为毫秒
+	allowRedirects bool   // 是否允许重定向，默认允许
+	stream         string // 先占位 后续更新
+	auth           string // 先占位 后续更新
+	cert           string // 先占位 后续更新
 }
 
 func NewOption() *Option {
@@ -70,4 +74,119 @@ func (o *Option) SetMethod(method string) *Option {
 	}
 
 	return o
+}
+
+func (o *Option) GetMethod() string {
+	return o.method
+}
+
+func (o *Option) SetHeaders(headers any) *Option {
+	if headers != nil {
+		switch headers.(type) {
+		case map[string]string:
+			baseHeaders := NewHeaders()
+			for key, value := range headers.(map[string]string) {
+				baseHeaders.Set(key, value)
+			}
+			o.headers = baseHeaders
+		case *netHTTP.Header:
+			o.headers = headers.(*netHTTP.Header)
+		default:
+			log.Panicln("Headers only support <*http.Header || map[string]string>")
+		}
+	}
+	return o
+}
+
+func (o *Option) GetHeaders() netHTTP.Header {
+	if o.headers == nil {
+		return nil
+	}
+	return *o.headers
+}
+
+func (o *Option) SetCookies(cookie any) *Option {
+	o._tempCookies = cookie
+	o.setCookies()
+	return o
+}
+
+func (o *Option) SetDomain(rawUrl string) *Option {
+	o.domain = parseDomain(rawUrl)
+	return o
+}
+
+func (o *Option) setCookies() *Option {
+	// 这个地方才是主要的操作 option里面的操作了 --> 这里其实属于慢操作，核心的
+	if o.cookies == nil {
+		o.cookies = make([]*netHTTP.Cookie, 0)
+	}
+	cookie := o._tempCookies
+	if cookie != nil {
+		switch cookie.(type) {
+		case map[string]string:
+			for key, value := range cookie.(map[string]string) {
+				baseCookies := NewCookies()
+				baseCookies.Name = key
+				baseCookies.Value = value
+				baseCookies.Path = "/"
+				baseCookies.Domain = o.domain
+
+				exists := false
+				if len(o.cookies) > 0 {
+					for ind, ck := range o.cookies {
+						if ck.Name == key && ck.Domain == o.domain { // 如果是存在的cookie那么就要替换
+							o.cookies[ind] = baseCookies
+							exists = true
+						}
+					}
+				}
+				if !exists {
+					o.cookies = append(o.cookies, baseCookies)
+				}
+			}
+		case []*netHTTP.Cookie:
+			o.cookies = cookie.([]*netHTTP.Cookie)
+		case *netHTTP.Cookie:
+			exists := false
+			for ind, ck := range o.cookies {
+				if ck.Name == cookie.(*netHTTP.Cookie).Name && ck.Domain == cookie.(*netHTTP.Cookie).Domain {
+					o.cookies[ind] = ck
+					exists = true
+				}
+			}
+			if !exists {
+				o.cookies = append(o.cookies, cookie.(*netHTTP.Cookie))
+			}
+		case string:
+			mapCookie := litestr.CookieStringToMap(cookie.(string))
+			for key, value := range mapCookie {
+				baseCookies := NewCookies()
+				baseCookies.Name = key
+				baseCookies.Value = value
+				baseCookies.Path = "/"
+				baseCookies.Domain = o.domain
+
+				exists := false
+				if len(o.cookies) > 0 {
+					for ind, ck := range o.cookies {
+						if ck.Name == key && ck.Domain == o.domain { // 如果是存在的cookie那么就要替换
+							o.cookies[ind] = baseCookies
+							exists = true
+						}
+					}
+				}
+				if !exists {
+					o.cookies = append(o.cookies, baseCookies)
+				}
+			}
+		default:
+			log.Panicln("Cookies only support <[]*http.Cookie || *http.Cookie || map[string]string || string>")
+		}
+	}
+	return o
+}
+
+func (o *Option) GetCookies() []*netHTTP.Cookie {
+	return o.cookies
 }
