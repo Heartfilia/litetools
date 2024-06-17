@@ -16,6 +16,7 @@ type Option struct {
 	headers        *netHTTP.Header
 	_tempCookies   any
 	cookies        []*netHTTP.Cookie
+	enableCookie   bool   // 默认使用 用于某些情况下是否使用cookie的情况
 	data           string // 先占位 后续更新
 	json           string // 先占位 后续更新
 	verify         bool   // 默认true
@@ -35,6 +36,7 @@ func NewOption() *Option {
 		method:         "GET",
 		allowRedirects: true,
 		verify:         true,
+		enableCookie:   true,
 	}
 }
 
@@ -109,6 +111,15 @@ func (o *Option) SetCookies(cookie any) *Option {
 	o._tempCookies = cookie
 	o.setCookies()
 	return o
+}
+
+func (o *Option) SetCookieEnable(enable bool) *Option {
+	o.enableCookie = enable
+	return o
+}
+
+func (o *Option) GetCookieEnable() bool {
+	return o.enableCookie
 }
 
 func (o *Option) SetDomain(rawUrl string) *Option {

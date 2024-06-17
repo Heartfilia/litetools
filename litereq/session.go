@@ -40,6 +40,9 @@ func NewSession() *Session {
 func (s *Session) Do(url string, o *opt.Option) *Response {
 	// main : 这里可以处理一些额外的操作 但是目前我这里先省略
 	s.setCookies(url)
+	if o == nil {
+		o = opt.NewOption()
+	}
 	o.SetDomain(url)
 	return s.sendRequest(url, o)
 }
@@ -98,13 +101,15 @@ func (s *Session) http1Request(url string, o *opt.Option) (*netHTTP.Response, []
 		req.Header = s.GetHeaders()
 	}
 
-	if o.GetCookies() != nil {
-		for _, ck := range o.GetCookies() {
-			req.AddCookie(ck)
-		}
-	} else if s.GetCookies() != nil {
-		for _, ck := range s.GetCookies() {
-			req.AddCookie(ck)
+	if o.GetCookieEnable() {
+		if o.GetCookies() != nil {
+			for _, ck := range o.GetCookies() {
+				req.AddCookie(ck)
+			}
+		} else if s.GetCookies() != nil {
+			for _, ck := range s.GetCookies() {
+				req.AddCookie(ck)
+			}
 		}
 	}
 

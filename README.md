@@ -17,7 +17,7 @@ import (
 )
 
 func main(){
-	defer litetime.Timer("main")()   // 用于统计该函数运行耗时
+	defer litetime.Timer()()   // 用于统计该函数运行耗时
 	
     t := litetime.Option{
         //Goal: "2024-01-10 10:43:21", // 如果不传 所有操作基于当前时间 传了字符串 那么基于字符串所示时间处理 不过字符串得对应下面的格式化样式
@@ -63,7 +63,7 @@ func main(){
         Cursor: -1,
     }
     // 注意得结合预期获得结果 要不然获得的是对应类型的 零值
-	defer litetime.Timer("main")()
+	defer litetime.Timer()()
 	
 	fmt.Println(litetime.Time(nil).Int())     // 默认就是获取 13 位的时间戳（毫秒）
 	fmt.Println(litetime.Time(nil).String())  // 默认就是 %Y-%m-%d %H:%M:%S 的格式
@@ -96,7 +96,9 @@ func main() {
 
 	// 新增 日志标签 建议配合 log 使用 如下 [D I S W E] -> [debug info success warning error]
 	log.Println(litestr.D(), "这里再写自己的日志")
+	
 	log.Printf("%s %s", litestr.E(), "如果是f的话需要这样子写 要不然有换行异常\n")
+	log.Printf(litestr.E() + " %s", "如果是f的话需要这样子写 要不然有换行异常\n")
 }
 ```
 
