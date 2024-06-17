@@ -86,14 +86,17 @@ func testReq() {
 	option := opt.NewOption()
 	option.
 		SetMethod("GET").
-		SetVerify(false).
-		SetRedirects(true).
+		SetVerify(false).   // 还没实现
+		SetRedirects(true). // 还没实现
 		SetCookies(map[string]string{"b": "", "d": "666"}).
-		SetParams("a=1&b=test")
+		SetParams("a=1&b=test") // 这里优先级高于Do里面填写的 如果两边都写了 这里和那边做融合 这里为主
 
-	response := session.SetVerbose(true).SetRetry(5).SetCookies(map[string]string{"a": "1"}).SetHeaders(
-		map[string]string{"user-agent": "litetools V2"},
-	).Do("http://httpbin.org/get?c=3&b=1111", option)
+	response := session.
+		SetVerbose(true).
+		SetRetry(5).
+		SetCookies(map[string]string{"a": "1"}).
+		SetHeaders(map[string]string{"user-agent": "litetools V2"}).
+		Do("http://httpbin.org/get?c=3&b=1111", option)
 	fmt.Println(response.Text)
 }
 
