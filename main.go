@@ -84,11 +84,16 @@ func testReq() {
 	defer litetime.Timer()()
 	session := litereq.NewSession()
 	option := opt.NewOption()
-	option.SetMethod("GET").SetVerify(false).SetRedirects(true).SetCookies(map[string]string{"b": "", "d": "666"})
+	option.
+		SetMethod("GET").
+		SetVerify(false).
+		SetRedirects(true).
+		SetCookies(map[string]string{"b": "", "d": "666"}).
+		SetParams("a=1&b=test")
 
 	response := session.SetVerbose(true).SetRetry(5).SetCookies(map[string]string{"a": "1"}).SetHeaders(
 		map[string]string{"user-agent": "litetools V2"},
-	).Do("http://httpbin.org/get", option)
+	).Do("http://httpbin.org/get?c=3&b=1111", option)
 	fmt.Println(response.Text)
 }
 

@@ -1,9 +1,11 @@
 package opt
 
 import (
+	"fmt"
 	"github.com/Heartfilia/litetools/litestr"
 	"log"
 	netHTTP "net/http"
+	netURL "net/url"
 	"strings"
 )
 
@@ -12,7 +14,10 @@ import (
 
 type Option struct {
 	domain         string
-	params         string // 先占位 后续更新
+	path           string
+	query          string
+	params         *netURL.Values // 先占位 后续更新
+	_tempParams    any
 	headers        *netHTTP.Header
 	_tempCookies   any
 	cookies        []*netHTTP.Cookie
@@ -48,6 +53,47 @@ func (o *Option) SetRedirects(allow bool) *Option {
 func (o *Option) SetVerify(enable bool) *Option {
 	o.verify = enable
 	return o
+}
+
+func (o *Option) SetParams(params any) *Option {
+	o._tempParams = params
+	return o
+}
+
+func (o *Option) GetParams() netURL.Values {
+	// 传入
+	params := o._tempParams
+	if params != nil {
+		parse, _ := netURL.Parse(fmt.Sprintf("https://%s?%s", o.domain, o.query))
+		query := parse.Query()
+		switch params.(type) {
+		case map[string]any:
+			for k, v := range params.(map[string]any) {
+				query.Set(k, fmt.Sprintf("%v", v))
+			}
+		case map[string]string:
+			for k, v := range params.(map[string]string) {
+				query.Set(k, v)
+			}
+		case netURL.Values:
+			query = params.(netURL.Values)
+		case string:
+			items := parseStringParams(params.(string))
+			if items != nil {
+				for k, v := range items {
+					query.Set(k, v)
+				}
+			}
+		default:
+			log.Panicln("Params only support <url.Values || map[string]string || map[string]any || string>")
+		}
+
+		o.params = &query
+
+		return query
+	}
+
+	return nil
 }
 
 func (o *Option) SetMethod(method string) *Option {
@@ -122,8 +168,11 @@ func (o *Option) GetCookieEnable() bool {
 	return o.enableCookie
 }
 
-func (o *Option) SetDomain(rawUrl string) *Option {
-	o.domain = parseDomain(rawUrl)
+func (o *Option) SetURLDetail(rawUrl string) *Option {
+	host, path, query := parseDomain(rawUrl)
+	o.domain = host
+	o.path = path
+	o.query = query
 	return o
 }
 

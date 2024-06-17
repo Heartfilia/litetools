@@ -4,12 +4,15 @@ import netHTTP "net/http"
 
 type Response struct {
 	// StatusCode is the status code of the Response
-	StatusCode int
-	Body       []byte
-	Text       string
-	Headers    netHTTP.Header
-	Ctx        *Context
-	err        error // 记录错误详情
+	StatusCode    int
+	Body          []byte
+	Text          string
+	Headers       netHTTP.Header
+	Proto         string // 协议版本
+	Status        string // 协议版本
+	Ctx           *Context
+	ContentLength int
+	err           error // 记录错误详情
 }
 
 type History struct {

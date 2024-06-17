@@ -43,7 +43,7 @@ func (s *Session) Do(url string, o *opt.Option) *Response {
 	if o == nil {
 		o = opt.NewOption()
 	}
-	o.SetDomain(url)
+	o.SetURLDetail(url)
 	return s.sendRequest(url, o)
 }
 
@@ -65,6 +65,9 @@ func (s *Session) sendRequest(url string, o *opt.Option) *Response {
 			response.Text = string(respBytes)
 			response.Headers = resp.Header
 			response.StatusCode = resp.StatusCode
+			response.Proto = resp.Proto
+			response.Status = resp.Status
+			response.ContentLength = int(resp.ContentLength)
 			suc = true
 		}
 		if s.verbose {
@@ -99,6 +102,9 @@ func (s *Session) http1Request(url string, o *opt.Option) (*netHTTP.Response, []
 		req.Header = o.GetHeaders()
 	} else if s.GetHeaders() != nil {
 		req.Header = s.GetHeaders()
+	}
+	if o.GetParams() != nil {
+		req.URL.RawQuery = o.GetParams().Encode()
 	}
 
 	if o.GetCookieEnable() {
