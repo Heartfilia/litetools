@@ -26,6 +26,7 @@ type Session struct {
 	headers      *netHTTP.Header   // 全局headers
 	cookies      []*netHTTP.Cookie // 全局的cookies
 	_tempCookies any               // 用于临时记录
+	_tempProxy   string            // 临时记录proxy
 }
 
 func NewSession() *Session {
@@ -37,7 +38,7 @@ func NewSession() *Session {
 	}
 }
 
-func (s *Session) Do(url string, o *opt.Option) *Response {
+func (s *Session) Fetch(url string, o *opt.Option) *Response {
 	// main : 这里可以处理一些额外的操作 但是目前我这里先省略
 	s.setCookies(url)
 	if o == nil {
@@ -136,6 +137,16 @@ func (s *Session) http1Request(url string, o *opt.Option) (*netHTTP.Response, []
 
 func (s *Session) handle3XXResponse() {
 	// 处理 30X 的响应
+}
+
+func (s *Session) SetProxy(proxy string) *Session {
+	// 这里 是全局代理 优先级低于独立配置的代理位置： 这里更加适合放隧道代理或者长效代理
+	s._tempProxy = proxy
+	return s
+}
+
+func (s *Session) setProxy() {
+
 }
 
 func (s *Session) SetHeaders(header any) *Session {
