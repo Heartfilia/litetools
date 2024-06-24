@@ -81,21 +81,23 @@ func testTag() {
 }
 
 func testReq() {
+	// 数据安全 加锁 啥的 后面整体流程实现了之后再去处理
 	defer litetime.Timer()()
 	session := litereq.NewSession()
-	option := opt.NewOption()
+	option := opt.NewOption() // 这里优先级高于Fetch里面填写的 如果两边都写了 这里和那边做融合 这里为主
 	option.
 		SetMethod("GET").
 		SetVerify(false).                                   // 还没实现
 		SetRedirects(true).                                 // 还没实现
 		SetCookies(map[string]string{"b": "", "d": "666"}). // cookie兼容 字符串格式和map格式 也兼容cookie对象
-		SetParams("a=1&b=test")                             // 这里优先级高于Fetch里面填写的 如果两边都写了 这里和那边做融合 这里为主
+		SetParams("a=1&b=test")
 
 	response := session.
 		SetVerbose(true).
+		//SetHTTP2(true). // 还没实现
 		SetRetry(5).
 		SetCookies(map[string]string{"a": "1"}).
-		SetHeaders(map[string]string{"user-agent": "litetools V2"}). // 兼容map格式和headers对象
+		SetHeaders(map[string]string{"user-agent": "lite-tools V2"}). // 兼容map格式和headers对象
 		Fetch("http://httpbin.org/get?c=3&b=1111", option)
 	fmt.Println(response.Text)
 }
