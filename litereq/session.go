@@ -8,6 +8,7 @@ import (
 	"log"
 	netHTTP "net/http"
 	"strings"
+	"time"
 )
 
 /*
@@ -22,6 +23,7 @@ type Session struct {
 	maxRetry     int  // max retry, default 1
 	http2        bool // default false --> 先不忙支持 后面我会弄的
 	verbose      bool // default false 就是用于打印详细日志的
+	timeout      int  // 毫秒的单位 不传不管 这里是全局参数 在单独请求哪里也有这个控制
 	client       *netHTTP.Client
 	headers      *netHTTP.Header   // 全局headers
 	cookies      []*netHTTP.Cookie // 全局的cookies
@@ -60,7 +62,8 @@ func (s *Session) sendRequest(url string, o *opt.Option) *Response {
 				if s.verbose {
 					log.Println(litestr.E(), err)
 				}
-				return nil
+				response.err = err
+				continue
 			}
 			response.Body = respBytes
 			response.Text = string(respBytes)
@@ -99,14 +102,11 @@ func (s *Session) http1Request(url string, o *opt.Option) (*netHTTP.Response, []
 			return nil, nil, err
 		}
 	}
-	if o.GetHeaders() != nil {
-		req.Header = o.GetHeaders()
-	} else if s.GetHeaders() != nil {
-		req.Header = s.GetHeaders()
-	}
 	if o.GetParams() != nil {
 		req.URL.RawQuery = o.GetParams().Encode()
 	}
+
+	s.setHeaders(req, o.GetHeaders())
 
 	if o.GetCookieEnable() {
 		if o.GetCookies() != nil {
@@ -119,6 +119,9 @@ func (s *Session) http1Request(url string, o *opt.Option) (*netHTTP.Response, []
 			}
 		}
 	}
+
+	s.setTimeout(o.GetTimeout())
+	s.setProxy(o.GetProxy())
 
 	resp, err := s.client.Do(req)
 	if err != nil {
@@ -145,8 +148,31 @@ func (s *Session) SetProxy(proxy string) *Session {
 	return s
 }
 
-func (s *Session) setProxy() {
+func (s *Session) setProxy(optionProxy string) {
+	if optionProxy != "" { // 优先使用option里面的代理
+		transport := &netHTTP.Transport{
+			Proxy: netHTTP.ProxyURL(mustParseURL(optionProxy)),
+		}
+		s.client.Transport = transport
+	} else if s._tempProxy != "" { // 其次使用全局的代理
+		transport := &netHTTP.Transport{
+			Proxy: netHTTP.ProxyURL(mustParseURL(s._tempProxy)),
+		}
+		s.client.Transport = transport
+	}
+}
 
+func (s *Session) SetTimeout(timeout int) *Session {
+	s.timeout = timeout
+	return s
+}
+
+func (s *Session) setTimeout(optionTimeout int) {
+	if optionTimeout > 0 { // 优先使用option里面的超时
+		s.client.Timeout = time.Duration(optionTimeout) * time.Millisecond
+	} else if s.timeout > 0 { // 其次使用全局的超时
+		s.client.Timeout = time.Duration(s.timeout) * time.Millisecond
+	}
 }
 
 func (s *Session) SetHeaders(header any) *Session {
@@ -168,11 +194,12 @@ func (s *Session) SetHeaders(header any) *Session {
 	return s
 }
 
-func (s *Session) GetHeaders() netHTTP.Header {
-	if s.headers == nil {
-		return nil
+func (s *Session) setHeaders(req *netHTTP.Request, headers netHTTP.Header) {
+	if headers != nil {
+		req.Header = headers
+	} else if *s.headers != nil {
+		req.Header = *s.headers
 	}
-	return *s.headers
 }
 
 func (s *Session) SetCookies(cookie any) *Session {

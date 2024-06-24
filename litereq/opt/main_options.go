@@ -26,7 +26,7 @@ type Option struct {
 	json           string // 先占位 后续更新
 	verify         bool   // 默认true
 	files          string // 先占位 后续更新
-	proxy          string // 先占位 后续更新
+	proxy          string
 	method         string // 默认GET -> 通过 option.SetMethod("POST")调整
 	timeout        int    // ms  单位为毫秒
 	allowRedirects bool   // 是否允许重定向，默认允许
@@ -128,6 +128,15 @@ func (o *Option) GetMethod() string {
 	return o.method
 }
 
+func (o *Option) SetProxy(proxy string) *Option {
+	o.proxy = proxy
+	return o
+}
+
+func (o *Option) GetProxy() string {
+	return o.proxy
+}
+
 func (o *Option) SetHeaders(headers any) *Option {
 	if headers != nil {
 		switch headers.(type) {
@@ -166,6 +175,15 @@ func (o *Option) SetCookieEnable(enable bool) *Option {
 
 func (o *Option) GetCookieEnable() bool {
 	return o.enableCookie
+}
+
+func (o *Option) SetTimeout(timeout int) *Option {
+	o.timeout = timeout
+	return o
+}
+
+func (o *Option) GetTimeout() int {
+	return o.timeout
 }
 
 func (o *Option) SetURLDetail(rawUrl string) *Option {
