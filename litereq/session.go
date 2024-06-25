@@ -31,6 +31,7 @@ type Session struct {
 	_tempProxy   string            // 临时记录proxy
 }
 
+// NewSession : create base session object that can be chained
 func NewSession() *Session {
 	return &Session{
 		maxRetry: 1,
@@ -40,6 +41,11 @@ func NewSession() *Session {
 	}
 }
 
+// Fetch     : do the last request
+//
+// @Param url: The target page you are requesting
+//
+// @Param o  : Single request parameter option <or> nil
 func (s *Session) Fetch(url string, o *opt.Option) *Response {
 	// main : 这里可以处理一些额外的操作 但是目前我这里先省略
 	s.setCookies(url)
@@ -72,10 +78,12 @@ func (s *Session) sendRequest(url string, o *opt.Option) *Response {
 			response.Proto = resp.Proto
 			response.Status = resp.Status
 			response.ContentLength = int(resp.ContentLength)
+			response.err = nil
 			suc = true
 		}
 		if s.verbose {
 			// 这里是在过程中遇到的报错打印出来
+			log.Println(litestr.E(), "error:", response.Error())
 		}
 		if suc == true {
 			break
@@ -142,6 +150,7 @@ func (s *Session) handle3XXResponse() {
 	// 处理 30X 的响应
 }
 
+// SetProxy : Set global proxy: example > http://name:pass@ip:port <or> http://ip:port
 func (s *Session) SetProxy(proxy string) *Session {
 	// 这里 是全局代理 优先级低于独立配置的代理位置： 这里更加适合放隧道代理或者长效代理
 	s._tempProxy = proxy
@@ -175,6 +184,9 @@ func (s *Session) setTimeout(optionTimeout int) {
 	}
 }
 
+// SetHeaders : Set global headers: support
+//
+// >>> map[string]string | http.header
 func (s *Session) SetHeaders(header any) *Session {
 	// 这个方法是直接操作类似 option里面的操作了
 	if header != nil {
@@ -197,11 +209,14 @@ func (s *Session) SetHeaders(header any) *Session {
 func (s *Session) setHeaders(req *netHTTP.Request, headers netHTTP.Header) {
 	if headers != nil {
 		req.Header = headers
-	} else if *s.headers != nil {
+	} else if s.headers != nil && *s.headers != nil {
 		req.Header = *s.headers
 	}
 }
 
+// SetCookies : Set global Cookies: support
+//
+// >>> string<a=1;b=2> | map[string]string<map[string]string{"a":"1","b":"2"}> | *http.Cookie
 func (s *Session) SetCookies(cookie any) *Session {
 	s._tempCookies = cookie
 	return s

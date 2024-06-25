@@ -5,7 +5,6 @@ import (
 	"github.com/Heartfilia/litetools/litejson"
 	"github.com/Heartfilia/litetools/litenet"
 	"github.com/Heartfilia/litetools/litereq"
-	"github.com/Heartfilia/litetools/litereq/opt"
 	"github.com/Heartfilia/litetools/litestr"
 	"github.com/Heartfilia/litetools/litetime"
 	"log"
@@ -83,29 +82,33 @@ func testTag() {
 func testReq() {
 	// 数据安全 加锁 啥的 后面整体流程实现了之后再去处理
 	defer litetime.Timer()()
-	session := litereq.NewSession()
-	option := opt.NewOption() // 这里优先级高于Fetch里面填写的 如果两边都写了 这里和那边做融合 这里为主
-	option.
-		SetMethod("GET").
-		SetVerify(false).   // 还没实现
-		SetRedirects(true). // 还没实现
-		SetHeaders(map[string]string{"user-agent": "from option"}).
-		SetCookies(map[string]string{"b": "", "d": "666"}). // cookie兼容 字符串格式和map格式 也兼容cookie对象
-		SetParams("a=1&b=test").
-		//SetProxy("http://6h65j8:mv2imgwv@43.248.79.229:64060").
-		SetTimeout(3000)
 
-	response := session.
+	session := litereq.NewSession().
 		SetVerbose(true).
 		//SetHTTP2(true). // 还没实现
 		//SetTimeout(2000).
 		//SetRetry(2).
-		SetCookies(map[string]string{"a": "1"}).
-		//SetHeaders(map[string]string{"user-agent": "lite-tools V2"}). // 兼容map格式和headers对象
-		SetProxy("http://6h65j8:mv2imgwv@61.139.65.104:61063").
-		Fetch("http://httpbin.org/get?c=3&b=1111", option)
+		SetCookies(map[string]string{"a": "1"}).                     // 全局cookie  后面单独的参数配置的cookie会融合到这里面一起请求
+		SetHeaders(map[string]string{"user-agent": "lite-tools V2"}) // . // 兼容map格式和headers对象
+	//SetProxy("http://6h65j8:mv2imgwv@61.139.65.104:61063")  // 全局代理 如果option那边传入 按那边为主
+
+	//option := opt.NewOption().
+	//	SetMethod("GET").
+	//	SetVerify(false). // 还没实现
+	//	SetRedirects(true). // 还没实现
+	//	SetHeaders(map[string]string{"user-agent": "from option"}).
+	//	SetCookies(map[string]string{"b": "", "d": "666"}). // cookie兼容 字符串格式和map格式 也兼容cookie对象
+	//	SetParams("a=1&b=test").
+	//	SetCookieEnable(false). // 设置本次请求不使用cookie
+	//	//SetProxy("http://6h65j8:mv2imgwv@43.248.79.229:64060").
+	//	SetTimeout(3000)
+	//// 这里优先级高于Fetch里面填写的 如果两边都写了 这里和那边做融合 这里为主
+
+	response := session.Fetch("http://httpbin.org/get?c=3&b=1111", nil)
 
 	fmt.Println(response.Text)
+	fmt.Println(response.StatusCode)
+	fmt.Println(response.Error())
 }
 
 func main() {
