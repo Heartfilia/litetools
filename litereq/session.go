@@ -99,28 +99,26 @@ func (s *Session) sendRequest(url string, o *opt.Option) *Response {
 func (s *Session) http1Request(url string, o *opt.Option) (*netHTTP.Response, []byte, error) {
 	var req *netHTTP.Request
 	var err error
-	if o.GetMethod() == "POST" {
+	switch o.GetMethod() {
+	case "POST", "PUT", "DELETE", "PATCH":
 		body := strings.NewReader("测试")
 		req, err = netHTTP.NewRequest(o.GetMethod(), url, body)
-		if err != nil {
-			return nil, nil, err
-		}
-	} else {
-		req, err = netHTTP.NewRequest("GET", url, nil)
-		if err != nil {
-			return nil, nil, err
-		}
+	case "GET", "HEAD":
+		req, err = netHTTP.NewRequest(o.GetMethod(), url, nil)
+	default:
+		log.Panicf("not support your method: %s", o.GetMethod())
 	}
+	if err != nil {
+		return nil, nil, err
+	}
+
 	if o.GetParams() != nil {
 		req.URL.RawQuery = o.GetParams().Encode()
 	}
-
 	s.setReqHeaders(req, o.GetHeaders())
-
 	if o.GetCookieEnable() {
 		s.setReqCookies(req, o.GetCookies())
 	}
-
 	s.setTimeout(o.GetTimeout())
 	s.setProxy(o.GetProxy())
 
