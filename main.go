@@ -110,7 +110,6 @@ func testReq() {
 	fmt.Println(response.Text)
 	fmt.Println(response.StatusCode)
 	fmt.Println(response.Error())
-	fmt.Println(session.GetCookies().String())
 }
 
 func main() {
