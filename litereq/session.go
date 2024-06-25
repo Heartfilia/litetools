@@ -89,8 +89,9 @@ func (s *Session) sendRequest(url string, o *opt.Option) *Response {
 			break
 		}
 	}
-	if suc == false {
-		response.err = errors.New("bad requests")
+	if suc == false && response.Error() == nil {
+		// 如果失败的时候 并且没有失败的日志记录 那么补充一个错误提示
+		response.err = errors.New("bad requests with this packages: help me fix it with debug")
 	}
 	return response
 }
@@ -133,9 +134,9 @@ func (s *Session) http1Request(url string, o *opt.Option) (*netHTTP.Response, []
 
 		}
 	}(resp.Body)
-	respByte, _ := io.ReadAll(resp.Body)
+	respByte, err := io.ReadAll(resp.Body)
 
-	return resp, respByte, nil
+	return resp, respByte, err
 }
 
 func (s *Session) handle3XXResponse() {
