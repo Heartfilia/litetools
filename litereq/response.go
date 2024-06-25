@@ -1,6 +1,9 @@
 package litereq
 
-import netHTTP "net/http"
+import (
+	"github.com/Heartfilia/litetools/litereq/opt"
+	netHTTP "net/http"
+)
 
 type Response struct {
 	// StatusCode is the status code of the Response
@@ -10,6 +13,7 @@ type Response struct {
 	Headers       netHTTP.Header
 	Proto         string // 协议版本
 	Status        string // 协议版本
+	Cookies       *opt.Cookie
 	Ctx           *Context
 	ContentLength int
 	err           error // 记录错误详情

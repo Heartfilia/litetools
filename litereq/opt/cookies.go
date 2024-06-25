@@ -1,6 +1,7 @@
 package opt
 
 import (
+	"encoding/json"
 	"fmt"
 	netHTTP "net/http"
 	"strings"
@@ -18,6 +19,7 @@ func (c *Cookie) Cookies() []*netHTTP.Cookie {
 	return c.originCookie
 }
 
+// StoreCookies : do not use it
 func (c *Cookie) StoreCookies(ck []*netHTTP.Cookie) {
 	c.originCookie = ck
 }
@@ -34,4 +36,27 @@ func (c *Cookie) String() string {
 		return ""
 	}
 	return strings.Join(baseCK, "; ")
+}
+
+func (c *Cookie) Map() map[string]string {
+	if c.Cookies() == nil {
+		return map[string]string{}
+	}
+	baseCK := make(map[string]string)
+	for _, ck := range c.Cookies() {
+		baseCK[ck.Name] = ck.Value
+	}
+	if len(baseCK) == 0 {
+		return map[string]string{}
+	}
+	return baseCK
+}
+
+func (c *Cookie) Json() string {
+	baseCK := c.Map()
+	marshal, err := json.Marshal(baseCK)
+	if err != nil {
+		return "{}"
+	}
+	return string(marshal)
 }

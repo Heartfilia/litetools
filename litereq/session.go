@@ -8,6 +8,7 @@ import (
 	"log"
 	netHTTP "net/http"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -18,6 +19,8 @@ import (
 
 TODO 下面设置session的全局参数的时候 需要枷锁 比如 cookie  headers 后面弄
 */
+
+var rWmu sync.RWMutex
 
 type Session struct {
 	maxRetry     int  // max retry, default 1
@@ -48,7 +51,9 @@ func NewSession() *Session {
 // @Param o  : Single request parameter option <or> nil
 func (s *Session) Fetch(url string, o *opt.Option) *Response {
 	// main : 这里可以处理一些额外的操作 但是目前我这里先省略
+	rWmu.Lock()
 	s.setCookies(url)
+	rWmu.Unlock()
 	if o == nil {
 		o = opt.NewOption()
 	}
@@ -78,6 +83,10 @@ func (s *Session) sendRequest(url string, o *opt.Option) *Response {
 			response.Proto = resp.Proto
 			response.Status = resp.Status
 			response.ContentLength = int(resp.ContentLength)
+			s.updateCookies(resp.Cookies()) // 保存cookie  >>> maybe 30x not success
+			respCk := &opt.Cookie{}
+			respCk.StoreCookies(resp.Cookies())
+			response.Cookies = respCk
 			response.err = nil
 			suc = true
 		}
@@ -93,6 +102,7 @@ func (s *Session) sendRequest(url string, o *opt.Option) *Response {
 		// 如果失败的时候 并且没有失败的日志记录 那么补充一个错误提示
 		response.err = errors.New("bad requests with this packages: help me fix it with debug")
 	}
+
 	return response
 }
 
@@ -265,6 +275,23 @@ func (s *Session) setCookies(rawUrl string) *Session {
 		}
 	}
 	return s
+}
+
+func (s *Session) updateCookies(nowCookie []*netHTTP.Cookie) {
+	rWmu.RLock()
+	for _, ck := range nowCookie {
+		saved := false
+		for ind, savedCk := range s.cookies {
+			if ck.Name == savedCk.Name {
+				s.cookies[ind] = ck
+				saved = true
+			}
+		}
+		if !saved {
+			s.cookies = append(s.cookies, ck)
+		}
+	}
+	rWmu.RUnlock()
 }
 
 // GetCookies : return global store cookie >>> all saved cookie
