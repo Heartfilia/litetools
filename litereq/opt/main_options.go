@@ -75,6 +75,14 @@ func (o *Option) GetParams() netURL.Values {
 			for k, v := range params.(map[string]string) {
 				query.Set(k, v)
 			}
+		case [][2]any:
+			for _, eachParam := range params.([][2]any) {
+				query.Set(fmt.Sprintf("%v", eachParam[0]), fmt.Sprintf("%v", eachParam[1]))
+			}
+		case [][2]string:
+			for _, eachParam := range params.([][2]string) {
+				query.Set(eachParam[0], eachParam[1])
+			}
 		case netURL.Values:
 			query = params.(netURL.Values)
 		case string:
@@ -85,7 +93,7 @@ func (o *Option) GetParams() netURL.Values {
 				}
 			}
 		default:
-			log.Panicln("Params only support <url.Values || map[string]string || map[string]any || string>")
+			log.Panicln("Params only support <url.Values || map[string]string || map[string]any || string || [][2]any || [][2]string>")
 		}
 
 		o.params = &query
