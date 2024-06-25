@@ -101,9 +101,9 @@ func (s *Session) http1Request(url string, o *opt.Option) (*netHTTP.Response, []
 	var err error
 	switch o.GetMethod() {
 	case "POST", "PUT", "DELETE", "PATCH":
-		body := strings.NewReader("测试")
+		body := strings.NewReader("测试") // TODO: 这里的body配置后面弄
 		req, err = netHTTP.NewRequest(o.GetMethod(), url, body)
-	case "GET", "HEAD":
+	case "OPTIONS", "GET", "HEAD", "TRACE":
 		req, err = netHTTP.NewRequest(o.GetMethod(), url, nil)
 	default:
 		log.Panicf("not support your method: %s", o.GetMethod())
