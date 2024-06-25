@@ -105,6 +105,8 @@ func (s *Session) http1Request(url string, o *opt.Option) (*netHTTP.Response, []
 		req, err = netHTTP.NewRequest(o.GetMethod(), url, body)
 	case "OPTIONS", "GET", "HEAD", "TRACE":
 		req, err = netHTTP.NewRequest(o.GetMethod(), url, nil)
+	case "CONNECT":
+		log.Panicln("暂时不支持 not support now")
 	default:
 		log.Panicf("not support your method: %s", o.GetMethod())
 	}
