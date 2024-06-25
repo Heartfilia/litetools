@@ -81,7 +81,7 @@ func (s *Session) sendRequest(url string, o *opt.Option) *Response {
 			response.err = nil
 			suc = true
 		}
-		if s.verbose {
+		if s.verbose && response.Error() != nil {
 			// 这里是在过程中遇到的报错打印出来
 			log.Println(litestr.E(), "error:", response.Error())
 		}
@@ -114,18 +114,10 @@ func (s *Session) http1Request(url string, o *opt.Option) (*netHTTP.Response, []
 		req.URL.RawQuery = o.GetParams().Encode()
 	}
 
-	s.setHeaders(req, o.GetHeaders())
+	s.setReqHeaders(req, o.GetHeaders())
 
 	if o.GetCookieEnable() {
-		if o.GetCookies() != nil {
-			for _, ck := range o.GetCookies() {
-				req.AddCookie(ck)
-			}
-		} else if s.GetCookies() != nil {
-			for _, ck := range s.GetCookies() {
-				req.AddCookie(ck)
-			}
-		}
+		s.setReqCookies(req, o.GetCookies())
 	}
 
 	s.setTimeout(o.GetTimeout())
@@ -206,11 +198,23 @@ func (s *Session) SetHeaders(header any) *Session {
 	return s
 }
 
-func (s *Session) setHeaders(req *netHTTP.Request, headers netHTTP.Header) {
+func (s *Session) setReqHeaders(req *netHTTP.Request, headers netHTTP.Header) {
 	if headers != nil {
 		req.Header = headers
 	} else if s.headers != nil && *s.headers != nil {
 		req.Header = *s.headers
+	}
+}
+
+func (s *Session) setReqCookies(req *netHTTP.Request, cookies []*netHTTP.Cookie) {
+	if cookies != nil {
+		for _, ck := range cookies {
+			req.AddCookie(ck)
+		}
+	} else if s.cookies != nil {
+		for _, ck := range s.cookies {
+			req.AddCookie(ck)
+		}
 	}
 }
 
@@ -262,8 +266,11 @@ func (s *Session) setCookies(rawUrl string) *Session {
 	return s
 }
 
-func (s *Session) GetCookies() []*netHTTP.Cookie {
-	return s.cookies
+// GetCookies : return global store cookie >>> all saved cookie
+func (s *Session) GetCookies() *opt.Cookie {
+	ck := &opt.Cookie{}
+	ck.StoreCookies(s.cookies)
+	return ck
 }
 
 func (s *Session) SetRetry(retry int) *Session {
