@@ -124,7 +124,7 @@ func main() {
 
 ```
 
-### rand
+### slice
 ```go
 import (
 	"fmt"
