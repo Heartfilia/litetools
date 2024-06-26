@@ -174,6 +174,67 @@ func main(){
 
 ```
 
+session
+```go
+import (
+	"fmt"
+    "github.com/Heartfilia/litetools/litereq"      // 核心请求包
+	"github.com/Heartfilia/litetools/litereq/opt"  // 参数配置包
+)
+
+// 下面不同案例的参数配置是一样的
+// SetCookies: 支持map[string]string  / string: key=value  // *net.Cookie
+// SetHeaders: 支持map[string]string  / net.Header
+//
+// SetParams : 支持 key=value&key=value / [][2]any{{key, value}} / [][2]string{{key, value}} / netURL.Values / map[string]any / map[string]string
+/*
+推荐写法
+*/
+func req(){
+    session := litereq.NewSession().
+        SetVerbose(true).
+        SetHTTP2(true).     // 还没实现
+        SetTimeout(2000).   // 全局超时，option有配置以option为主
+        SetRetry(2).
+        SetCookies(map[string]string{"a": "1"}).                       // 全局cookies  后面单独的参数配置的cookie会融合到这里面一起请求
+        SetHeaders(map[string]string{"user-agent": "lite-tools V2"}).  // 全局headers  兼容map格式和headers对象
+        SetProxy("http://user:pass@ip:port")         // 全局代理 如果option那边传入 按那边为主 
+	
+	option := opt.NewOption().
+        SetMethod("GET").   // 需要传body之类的方法还没实现 <<<<<<<<
+        SetVerify(false).   // 还没实现
+        SetRedirects(true). // 还没实现
+        //SetHeaders(map[string]string{"user-agent": "from option"}).
+        //SetCookies(map[string]string{"b": "", "d": "666"}). // cookie兼容 字符串格式和map格式 也兼容cookie对象
+        //SetParams([][2]any{{"k", 1}, {"v", "2"}}).
+        SetCookieEnable(false). // 设置本次请求不使用cookie
+        //SetProxy("http://ip:port").
+        SetTimeout(3000)
+	
+	response := session.Fetch("http://httpbin.org/get", option)  // 如果需要配置那么就传入option对象
+	//response := session.Fetch("http://httpbin.org/get", nil)  // 如果不需要配置 直接传入 nil
+	
+	// 获取结果
+	fmt.Println(response.Error())
+	fmt.Println(response.Text)
+	fmt.Println(response.StatusCode)
+	fmt.Println(response.Headers)
+	fmt.Println(response.Body)
+	fmt.Println(response.ContentLength)
+	
+	fmt.Println(response.Cookies)  // 这个cookies是opt对象 所以有下面的二次操作
+	
+	// 需要 key=value; 格式的cookie
+    fmt.Println(response.Cookies.String())
+    // 需要 {"key":"value"} 的JSON格式的cookie
+    fmt.Println(response.Cookies.Json())
+    // 需要 {"key":"value"} 的map[string]string 格式的cookie
+    fmt.Println(response.Cookies.Map())
+	// 需要 []*net.Cookie 格式的的cookie
+    fmt.Println(response.Cookies.Cookies())
+}
+```
+
 
 ### 项目开发背景
 ```text
