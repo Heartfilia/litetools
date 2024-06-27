@@ -23,10 +23,11 @@ TODO 下面设置session的全局参数的时候 需要枷锁 比如 cookie  hea
 var rWmu sync.RWMutex
 
 type Session struct {
-	maxRetry     int  // max retry, default 1
-	http2        bool // default false --> 先不忙支持 后面我会弄的
-	verbose      bool // default false 就是用于打印详细日志的
-	timeout      int  // 毫秒的单位 不传不管 这里是全局参数 在单独请求哪里也有这个控制
+	maxRetry     int    // max retry, default 1
+	http2        bool   // default false --> 先不忙支持 后面我会弄的
+	verbose      bool   // default false 就是用于打印详细日志的
+	timeout      int    // 毫秒的单位 不传不管 这里是全局参数 在单独请求哪里也有这个控制
+	host         string // 我也不知道 反正设置host最好单独抠出来
 	client       *netHTTP.Client
 	headers      *netHTTP.Header   // 全局headers
 	cookies      []*netHTTP.Cookie // 全局的cookies
@@ -109,10 +110,18 @@ func (s *Session) sendRequest(url string, o *opt.Option) *Response {
 func (s *Session) http1Request(url string, o *opt.Option) (*netHTTP.Response, []byte, error) {
 	var req *netHTTP.Request
 	var err error
+	baseNewContentType := ""
 	switch o.GetMethod() {
 	case "POST", "PUT", "DELETE", "PATCH":
-		body := strings.NewReader("测试") // TODO: 这里的body配置后面弄
-		req, err = netHTTP.NewRequest(o.GetMethod(), url, body)
+		var body string
+		if o.GetJson() != nil {
+			body = string(o.GetJson())
+			baseNewContentType = "application/json"
+		} else {
+			return nil, nil, errors.New("not support now")
+		}
+		payload := strings.NewReader(body)
+		req, err = netHTTP.NewRequest(o.GetMethod(), url, payload)
 	case "OPTIONS", "GET", "HEAD", "TRACE":
 		req, err = netHTTP.NewRequest(o.GetMethod(), url, nil)
 	case "CONNECT":
@@ -127,12 +136,18 @@ func (s *Session) http1Request(url string, o *opt.Option) (*netHTTP.Response, []
 	if o.GetParams() != nil {
 		req.URL.RawQuery = o.GetParams().Encode()
 	}
+	if baseNewContentType != "" {
+		req.Header.Set("Content-Type", baseNewContentType)
+	} // 先程序自动配置header类型，然后下面再参数补充
 	s.setReqHeaders(req, o.GetHeaders())
 	if o.GetCookieEnable() {
 		s.setReqCookies(req, o.GetCookies())
 	}
 	s.setTimeout(o.GetTimeout())
 	s.setProxy(o.GetProxy())
+	if s.host != "" {
+		req.Host = s.host
+	}
 
 	resp, err := s.client.Do(req)
 	if err != nil {
@@ -316,6 +331,11 @@ func (s *Session) SetHTTP2(h2 bool) *Session {
 
 func (s *Session) SetVerbose(verbose bool) *Session {
 	s.verbose = verbose
+	return s
+}
+
+func (s *Session) SetHost(host string) *Session {
+	s.host = host
 	return s
 }
 

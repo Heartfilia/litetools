@@ -1,16 +1,19 @@
 package opt
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/Heartfilia/litetools/litestr"
 	"log"
 	netHTTP "net/http"
 	netURL "net/url"
 	"strings"
+	"sync"
 )
 
 // 作为请求参数的配置选项
 // 先把基础的一些配置开发了 其它配置后面再优化添加
+var rWmu sync.RWMutex
 
 type Option struct {
 	domain         string
@@ -23,7 +26,7 @@ type Option struct {
 	cookies        []*netHTTP.Cookie
 	enableCookie   bool   // 默认使用 用于某些情况下是否使用cookie的情况
 	data           string // 先占位 后续更新
-	json           string // 先占位 后续更新
+	json           []byte // 这里传入任何可以转成json的对象 然后我会记录在这里
 	verify         bool   // 默认true
 	files          string // 先占位 后续更新
 	proxy          string
@@ -146,7 +149,9 @@ func (o *Option) GetProxy() string {
 }
 
 func (o *Option) SetHeaders(headers any) *Option {
+
 	if headers != nil {
+		rWmu.RLock()
 		switch headers.(type) {
 		case map[string]string:
 			baseHeaders := NewHeaders()
@@ -159,6 +164,7 @@ func (o *Option) SetHeaders(headers any) *Option {
 		default:
 			log.Panicln("Headers only support <*http.Header || map[string]string>")
 		}
+		rWmu.RUnlock()
 	}
 	return o
 }
@@ -275,4 +281,20 @@ func (o *Option) setCookies() *Option {
 
 func (o *Option) GetCookies() []*netHTTP.Cookie {
 	return o.cookies
+}
+
+func (o *Option) SetJson(object any) *Option {
+	if object != nil {
+		marshal, err := json.Marshal(object)
+		if err != nil {
+			log.Panicln(litestr.E(), "error json object:", err)
+			return o
+		}
+		o.json = marshal
+	}
+	return o
+}
+
+func (o *Option) GetJson() []byte {
+	return o.json
 }
