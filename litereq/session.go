@@ -229,9 +229,10 @@ func (s *Session) setReqCookies(req *netHTTP.Request, cookies []*netHTTP.Cookie)
 	}
 }
 
-// SetCookies : Set global Cookies: support
+// SetCookies : Set global Cookies:
+// only run once
 //
-// >>> string<a=1;b=2> | map[string]string<map[string]string{"a":"1","b":"2"}> | *http.Cookie
+// >>> string<a=1;b=2> | map[string]string<map[string]string{"a":"1","b":"2"}> | *http.Cookie | []*http.Cookie
 func (s *Session) SetCookies(cookie any) *Session {
 	s._tempCookies = cookie
 	return s
