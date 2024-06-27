@@ -149,7 +149,6 @@ func (o *Option) GetProxy() string {
 }
 
 func (o *Option) SetHeaders(headers any) *Option {
-
 	if headers != nil {
 		rWmu.RLock()
 		switch headers.(type) {
