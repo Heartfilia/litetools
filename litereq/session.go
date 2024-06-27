@@ -51,9 +51,9 @@ func NewSession() *Session {
 // @Param o  : Single request parameter option <or> nil
 func (s *Session) Fetch(url string, o *opt.Option) *Response {
 	// main : 这里可以处理一些额外的操作 但是目前我这里先省略
-	rWmu.Lock()
-	s.setCookies(url)
-	rWmu.Unlock()
+	rWmu.RLock()
+	s.setCookies(url) // 第一次运行该网站的时候加载 后面不会反复加载
+	rWmu.RUnlock()
 	if o == nil {
 		o = opt.NewOption()
 	}
@@ -237,14 +237,14 @@ func (s *Session) SetCookies(cookie any) *Session {
 	return s
 }
 
-func (s *Session) setCookies(rawUrl string) *Session {
+func (s *Session) setCookies(rawUrl string) {
 	// 这个地方才是主要的操作 option里面的操作了 --> 这里其实属于慢操作，核心的
 	// 这里不需要判断是否在cookie里面已经存在的值了，因为初始化这里的时候才会添加cookie  但是option那边不是 会出现同样的cookie值 避免猛增
 	if s.cookies == nil {
 		s.cookies = make([]*netHTTP.Cookie, 0)
 	}
 	cookie := s._tempCookies
-	if cookie != nil {
+	if len(s.cookies) == 0 && cookie != nil { // 第一次原始cookie不存在数据的时候才往下走
 		domain := parseDomain(rawUrl)
 		switch cookie.(type) {
 		case map[string]string:
@@ -274,7 +274,6 @@ func (s *Session) setCookies(rawUrl string) *Session {
 			log.Panicln("Cookies only support <[]*http.Cookie || *http.Cookie || map[string]string || string>")
 		}
 	}
-	return s
 }
 
 func (s *Session) updateCookies(nowCookie []*netHTTP.Cookie) {
