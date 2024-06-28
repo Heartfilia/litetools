@@ -21,7 +21,7 @@ type Option struct {
 	cookies        []*netHTTP.Cookie
 	enableCookie   bool // 默认使用 用于某些情况下是否使用cookie的情况
 	data           *netURL.Values
-	_tempDatas     any
+	_tempData      any
 	json           []byte // 这里传入任何可以转成json的对象 然后我会记录在这里
 	verify         bool   // 默认true
 	files          string // 先占位 后续更新

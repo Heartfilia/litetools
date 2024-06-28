@@ -74,6 +74,13 @@ func (s *Session) http1Request(url string, o *opt.Option) (*netHTTP.Response, []
 			body = string(o.GetJson())
 			baseNewContentType = "application/json"
 		} else {
+			//dataInfo, typeInfo := o.GetData()
+			//if typeInfo == "bytes" {
+			//	baseNewContentType = "application/octet-stream"
+			//} else if typeInfo == "form" {
+			//	baseNewContentType = "application/x-www-form-urlencoded"
+			//}
+
 			return nil, nil, errors.New("not support now")
 		}
 		payload := strings.NewReader(body)
