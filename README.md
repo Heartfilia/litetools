@@ -201,7 +201,7 @@ func req(){
         SetProxy("http://user:pass@ip:port")         // 全局代理 如果option那边传入 按那边为主 
 	
 	option := opt.NewOption().
-        SetMethod("GET").   // 需要传body之类的方法还没实现 <<<<<<<<
+        SetMethod("GET").   
         SetVerify(false).   // 还没实现
         SetRedirects(true). // 还没实现
         //SetHeaders(map[string]string{"user-agent": "from option"}).
