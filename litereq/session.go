@@ -5,6 +5,7 @@ import (
 	"github.com/Heartfilia/litetools/litestr"
 	"log"
 	netHTTP "net/http"
+	"strings"
 	"sync"
 	"time"
 )
@@ -57,6 +58,13 @@ func (s *Session) Fetch(url string, o *opt.Option) *Response {
 	}
 	o.SetURLDetail(url)
 	return s.sendRequest(url, o)
+}
+
+// TestFetch : Test api
+func (s *Session) TestFetch(o *opt.Option) *Response {
+	// 测试用的
+	method := strings.ToLower(o.GetMethod())
+	return s.Fetch("http://httpbin.org/"+method, o)
 }
 
 func (s *Session) handle3XXResponse() {
