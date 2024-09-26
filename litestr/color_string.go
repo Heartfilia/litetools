@@ -1,7 +1,7 @@
-package litestring
+package litestr
 
 import (
-	myColor "github.com/Heartfilia/litetools/litestring/color"
+	myColor "github.com/Heartfilia/litetools/litestr/color"
 	"regexp"
 	"strings"
 )

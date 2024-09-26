@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Heartfilia/litetools/litenet/request"
-	"github.com/Heartfilia/litetools/literand"
+	"github.com/Heartfilia/litetools/liteslice"
 	"github.com/Heartfilia/litetools/utils/litedir"
 	"github.com/Heartfilia/litetools/utils/types"
 	"os"
@@ -146,7 +146,7 @@ func CombineString(platform, browser string) string {
 	headString := "Mozilla/5.0"
 	operaOld := false
 	if browser == "opera" {
-		useOld := literand.RandomChoice([]bool{true, false})
+		useOld := liteslice.RandomChoice([]bool{true, false})
 		if useOld {
 			headString = "Opera/9.80" // 这个是老引擎的 新版的可以是  Mozilla/5.0
 			operaOld = true
@@ -161,25 +161,25 @@ func CombineString(platform, browser string) string {
 		osString3 = ""
 	} else if platform == "mac" {
 		osString1 = "Macintosh"
-		safariVersion := literand.RandomChoice(version.Safari)
+		safariVersion := liteslice.RandomChoice(version.Safari)
 		newSafariVersion := strings.ReplaceAll(safariVersion, ".", "_")
 		osString2 = "Intel Mac OS X " + newSafariVersion
-		osString3 = literand.RandomChoice([]string{"", "; U; en", "; en-us", "; zh-hans", "; Eu; fr", "; Eu; De"})
+		osString3 = liteslice.RandomChoice([]string{"", "; U; en", "; en-us", "; zh-hans", "; Eu; fr", "; Eu; De"})
 	} else if platform == "harmony" {
 		// Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Mobile Safari/537.36 EdgA/121.0.0.0
 		osString1 = "Linux"
-		osString2 = "Android " + literand.RandomChoice([]string{"9", "10", "11", "12"})
-		osString3 = literand.RandomChoice([]string{"", "; K", "; L", "; M", "; N", "; O", "; P", "; Q", "; R", "; S", "; T", "; U"})
+		osString2 = "Android " + liteslice.RandomChoice([]string{"9", "10", "11", "12"})
+		osString3 = liteslice.RandomChoice([]string{"", "; K", "; L", "; M", "; N", "; O", "; P", "; Q", "; R", "; S", "; T", "; U"})
 	} else if platform == "ios" {
-		osString1 = "iPhone" + literand.RandomChoice([]string{"", "6s", "8 plus", "x", "11", "12", "13", "14", "15", "15 pro", "14 pro", "13 pro"})
-		safariVersion := literand.RandomChoice(version.Safari)
+		osString1 = "iPhone" + liteslice.RandomChoice([]string{"", "6s", "8 plus", "x", "11", "12", "13", "14", "15", "15 pro", "14 pro", "13 pro"})
+		safariVersion := liteslice.RandomChoice(version.Safari)
 		newSafariVersion := strings.ReplaceAll(safariVersion, ".", "_")
 		osString2 = "CPU iPhone OS " + newSafariVersion + " like Mac OS X"
 		osString3 = ""
 	} else if platform == "android" {
 		osString1 = "Linux"
-		osString2 = "Android " + literand.RandomChoice([]string{"9.0", "10.0", "11.0", "12.0", "10.1", "10.3", "11.2", "12.1"})
-		osString3 = literand.RandomChoice([]string{
+		osString2 = "Android " + liteslice.RandomChoice([]string{"9.0", "10.0", "11.0", "12.0", "10.1", "10.3", "11.2", "12.1"})
+		osString3 = liteslice.RandomChoice([]string{
 			"; zh-cn; BLA-AL00 Build/HUAWEIBLA-AL00",
 			"; PAR-AL00 Build/HUAWEIPAR-AL00; wv",
 			"; OPPO A57 Build/MMB29M; wv",
@@ -205,10 +205,10 @@ func CombineString(platform, browser string) string {
 			"; COL-AL10; HMSCore 6.1.0.305; GMSCore 17.7.85",
 		})
 	} else {
-		osString1 += literand.RandomChoice([]string{"10.0", "11.0"})
+		osString1 += liteslice.RandomChoice([]string{"10.0", "11.0"})
 	}
 
-	chromeVersion := literand.RandomChoice(version.Chromium)
+	chromeVersion := liteslice.RandomChoice(version.Chromium)
 
 	kitString := "AppleWebKit/537.36"
 	if browser == "firefox" {
@@ -223,9 +223,9 @@ func CombineString(platform, browser string) string {
 
 	otherPlug := "Safari/537.36"
 	if platform == "mac" && browser != "firefox" {
-		otherPlug = literand.RandomChoice([]string{"Safari/537.36", "Safari/605.1.15", "Safari/604.3.5"})
+		otherPlug = liteslice.RandomChoice([]string{"Safari/537.36", "Safari/605.1.15", "Safari/604.3.5"})
 	} else if browser == "firefox" {
-		otherPlug = "Firefox/" + literand.RandomChoice(version.Firefox)
+		otherPlug = "Firefox/" + liteslice.RandomChoice(version.Firefox)
 		tailStringWithVersion = ""
 	}
 
@@ -236,7 +236,7 @@ func CombineString(platform, browser string) string {
 	if !operaOld && browser == "opera" {
 		otherPlug += " OPR/" + chromeVersion
 	} else if browser == "opera" {
-		otherPlug += " Presto/2.1." + literand.RandomChoice([]string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"})
+		otherPlug += " Presto/2.1." + liteslice.RandomChoice([]string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20"})
 	}
 	if browser == "edge" {
 		otherPlug += " Edg/" + chromeVersion

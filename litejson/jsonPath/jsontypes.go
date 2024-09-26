@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/Heartfilia/litetools/litestring"
+	"github.com/Heartfilia/litetools/litestr"
 	"github.com/Heartfilia/litetools/utils/litedir"
 	"log"
 	"reflect"
@@ -33,7 +33,7 @@ type resultCache struct {
 }
 
 type Result struct {
-	Error  error
+	Err    error
 	value  any
 	isLast bool
 }
@@ -75,6 +75,9 @@ func (r *Result) StringSlice() []string {
 	}
 	return nil
 }
+func (r *Result) Error() error {
+	return r.Err
+}
 
 func (r *Result) String() string {
 	if r.Value() != nil {
@@ -96,7 +99,7 @@ func (r *Result) Int() int {
 	case float32:
 		return int(r.Value().(float32))
 	}
-	r.Error = errors.New(colorPanic("type conversion failed"))
+	r.Err = errors.New(colorPanic("type conversion failed"))
 	return 0
 }
 
@@ -107,7 +110,7 @@ func (r *Result) IntSlice() []int {
 		for i, v := range r.Value().([]any) {
 			realValue, err := strconv.Atoi(fmt.Sprintf("%v", v))
 			if err != nil {
-				r.Error = errors.New(colorPanic("bad slice types"))
+				r.Err = errors.New(colorPanic("bad slice types"))
 				return nil
 			}
 			result[i] = realValue
@@ -130,7 +133,7 @@ func (r *Result) Int64() int64 {
 	case float32:
 		return int64(r.Value().(float32))
 	}
-	r.Error = errors.New(colorPanic("type conversion failed"))
+	r.Err = errors.New(colorPanic("type conversion failed"))
 	return 0
 }
 
@@ -141,7 +144,7 @@ func (r *Result) Int64Slice() []int64 {
 		for i, v := range r.Value().([]any) {
 			realValue, err := strconv.Atoi(fmt.Sprintf("%v", v))
 			if err != nil {
-				r.Error = errors.New(colorPanic("bad slice types"))
+				r.Err = errors.New(colorPanic("bad slice types"))
 				return nil
 			}
 			result[i] = int64(realValue)
@@ -165,7 +168,7 @@ func (r *Result) Int32() int32 {
 		return int32(r.Value().(float32))
 
 	}
-	r.Error = errors.New(colorPanic("type conversion failed"))
+	r.Err = errors.New(colorPanic("type conversion failed"))
 	return 0
 }
 
@@ -176,7 +179,7 @@ func (r *Result) Int32Slice() []int32 {
 		for i, v := range r.Value().([]any) {
 			realValue, err := strconv.Atoi(fmt.Sprintf("%v", v))
 			if err != nil {
-				r.Error = errors.New(colorPanic("bad slice types"))
+				r.Err = errors.New(colorPanic("bad slice types"))
 				return nil
 			}
 			result[i] = int32(realValue)
@@ -199,7 +202,7 @@ func (r *Result) Float() float64 {
 	case int32:
 		return float64(r.Value().(int32))
 	}
-	r.Error = errors.New(colorPanic("type conversion failed"))
+	r.Err = errors.New(colorPanic("type conversion failed"))
 	return 0.0
 }
 
@@ -214,7 +217,7 @@ func (r *Result) FloatSlice() []float64 {
 			case float32:
 				result[i] = float64(v.(float32))
 			default:
-				r.Error = errors.New(colorPanic("bad slice types"))
+				r.Err = errors.New(colorPanic("bad slice types"))
 				return nil
 			}
 
@@ -237,7 +240,7 @@ func (r *Result) Float32() float32 {
 	case int32:
 		return float32(r.Value().(int32))
 	}
-	r.Error = errors.New(colorPanic("type conversion failed"))
+	r.Err = errors.New(colorPanic("type conversion failed"))
 	return 0.0
 }
 
@@ -252,7 +255,7 @@ func (r *Result) Float32Slice() []float32 {
 			case float64:
 				result[i] = float32(v.(float64))
 			default:
-				r.Error = errors.New(colorPanic("bad slice types"))
+				r.Err = errors.New(colorPanic("bad slice types"))
 				return nil
 			}
 
@@ -308,7 +311,7 @@ func (r *Result) BoolSlice() []bool {
 }
 
 func colorPanic(msg string) string {
-	return litestring.ColorString("panic: ", "red") + msg
+	return litestr.ColorString("panic: ", "red") + msg
 }
 
 func replaceTo(str string, mode int) string {
@@ -492,7 +495,7 @@ func transToObj(jsonString string) (any, error) {
 func parseRule(jsonString, rule string, resultObj *Result) {
 	res, err := transToObj(jsonString)
 	if err != nil {
-		resultObj.Error = err
+		resultObj.Err = err
 		return // 这里东西要返回 后面处理
 	}
 
@@ -514,7 +517,7 @@ func parseRule(jsonString, rule string, resultObj *Result) {
 		}
 	}
 	resultObj.setValue(js.Result)
-	resultObj.Error = js.Error
+	resultObj.Err = js.Error
 	if js.Error != nil {
 		resultObj.setLast(false)
 	} else if js.Result != nil {

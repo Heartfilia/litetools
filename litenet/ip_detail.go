@@ -48,8 +48,8 @@ func GetWAN() string {
 		if result == "" {
 			return ""
 		}
-		nowResult, err := litejson.TryGet(result, "origin")
-		if err == nil {
+		nowResult := litejson.TryGet(result, "origin")
+		if nowResult.Error() == nil {
 			ip = nowResult.String()
 		}
 	}
