@@ -29,6 +29,20 @@ func (o *Option) SetHeaders(headers any) *Option {
 	return o
 }
 
+func (o *Option) UpdateHeader(headers map[string]string) *Option {
+	if headers != nil {
+		rWmu.RLock()
+		if o.headers == nil {
+			o.headers = NewHeaders()
+		}
+		for key, value := range headers {
+			o.headers.Set(key, value)
+		}
+		rWmu.RUnlock()
+	}
+	return o
+}
+
 func (o *Option) GetHeaders() netHTTP.Header {
 	if o.headers == nil {
 		return nil

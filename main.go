@@ -106,7 +106,11 @@ func testReq() {
 				"test1": 123,
 			}}).
 		//SetProxy("http://6h65j8:mv2imgwv@43.248.79.229:64060").
-		SetTimeout(3000)
+		SetTimeout(3000).UpdateHeader(map[string]string{
+		"referer": "abc",
+		"token":   "123123123123123",
+		//"user-agent": "lite-tools V3",
+	})
 	//// 这里优先级高于Fetch里面填写的 如果两边都写了 这里和那边做融合 这里为主
 
 	response := session.Fetch("http://httpbin.org/post", option)

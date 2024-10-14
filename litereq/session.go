@@ -128,10 +128,15 @@ func (s *Session) SetHeaders(header any) *Session {
 }
 
 func (s *Session) setReqHeaders(req *netHTTP.Request, headers netHTTP.Header) {
-	if headers != nil {
-		req.Header = headers
-	} else if s.headers != nil && *s.headers != nil {
+	if s.headers != nil && *s.headers != nil {
 		req.Header = *s.headers
+	}
+	if headers != nil {
+		for key, value := range headers {
+			for _, valueChild := range value {
+				req.Header.Set(key, valueChild)
+			}
+		}
 	}
 }
 
