@@ -179,7 +179,7 @@ session
 import (
 	"fmt"
     "github.com/Heartfilia/litetools/litereq"      // 核心请求包
-	"github.com/Heartfilia/litetools/litereq/opt"  // 参数配置包
+	"github.com/Heartfilia/litetools/litereq/reqoptions"  // 参数配置包
 )
 
 // 下面不同案例的参数配置是一样的

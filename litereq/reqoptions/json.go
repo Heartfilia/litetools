@@ -1,4 +1,4 @@
-package opt
+package reqoptions
 
 import (
 	"encoding/json"

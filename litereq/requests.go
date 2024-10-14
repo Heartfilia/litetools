@@ -2,7 +2,7 @@ package litereq
 
 import (
 	"errors"
-	"github.com/Heartfilia/litetools/litereq/opt"
+	"github.com/Heartfilia/litetools/litereq/reqoptions"
 	"github.com/Heartfilia/litetools/litestr"
 	"io"
 	"log"
@@ -14,10 +14,10 @@ import (
 type Request struct {
 	URL     *netURL.URL
 	Ctx     *Context
-	Options *opt.Option
+	Options *reqoptions.Option
 }
 
-func (s *Session) sendRequest(url string, o *opt.Option) *Response {
+func (s *Session) sendRequest(url string, o *reqoptions.Option) *Response {
 	response := NewResponse()
 	suc := false
 	for r := 0; r < s.maxRetry; r++ {
@@ -41,7 +41,7 @@ func (s *Session) sendRequest(url string, o *opt.Option) *Response {
 			response.Status = resp.Status
 			response.ContentLength = int(resp.ContentLength)
 			s.updateCookies(resp.Cookies()) // 保存cookie  >>> maybe 30x not success
-			respCk := &opt.Cookie{}
+			respCk := &reqoptions.Cookie{}
 			respCk.StoreCookies(resp.Cookies())
 			response.Cookies = respCk
 			response.err = nil
@@ -63,7 +63,7 @@ func (s *Session) sendRequest(url string, o *opt.Option) *Response {
 	return response
 }
 
-func (s *Session) http1Request(url string, o *opt.Option) (*netHTTP.Response, []byte, error) {
+func (s *Session) http1Request(url string, o *reqoptions.Option) (*netHTTP.Response, []byte, error) {
 	var req *netHTTP.Request
 	var err error
 	baseNewContentType := ""
@@ -102,7 +102,7 @@ func (s *Session) http1Request(url string, o *opt.Option) (*netHTTP.Response, []
 	if baseNewContentType != "" {
 		req.Header.Set("Content-Type", baseNewContentType)
 	} // 先程序自动配置header类型，然后下面再参数补充
-	s.setReqHeaders(req, o.GetHeaders())
+	s.setReqHeaders(req, o.GetHeaders(), o.GetUnHeaderExcept())
 	if o.GetCookieEnable() {
 		s.setReqCookies(req, o.GetCookies())
 	}

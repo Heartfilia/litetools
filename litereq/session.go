@@ -1,7 +1,7 @@
 package litereq
 
 import (
-	"github.com/Heartfilia/litetools/litereq/opt"
+	"github.com/Heartfilia/litetools/litereq/reqoptions"
 	"github.com/Heartfilia/litetools/litestr"
 	"log"
 	netHTTP "net/http"
@@ -24,7 +24,7 @@ type Session struct {
 	maxRetry     int    // max retry, default 1
 	http2        bool   // default false --> 先不忙支持 后面我会弄的
 	verbose      bool   // default false 就是用于打印详细日志的
-	timeout      int    // 毫秒的单位 不传不管 这里是全局参数 在单独请求哪里也有这个控制
+	timeout      int    // 毫秒 的单位 不传不管 这里是全局参数 在单独请求哪里也有这个控制
 	host         string // 我也不知道 反正设置host最好单独抠出来
 	client       *netHTTP.Client
 	headers      *netHTTP.Header   // 全局headers
@@ -48,20 +48,20 @@ func NewSession() *Session {
 // @Param url: The target page you are requesting
 //
 // @Param o  : Single request parameter option <or> nil
-func (s *Session) Fetch(url string, o *opt.Option) *Response {
+func (s *Session) Fetch(url string, o *reqoptions.Option) *Response {
 	// main : 这里可以处理一些额外的操作 但是目前我这里先省略
 	rWmu.RLock()
 	s.setCookies(url) // 第一次运行该网站的时候加载 后面不会反复加载
 	rWmu.RUnlock()
 	if o == nil {
-		o = opt.NewOption()
+		o = reqoptions.NewOption()
 	}
 	o.SetURLDetail(url)
 	return s.sendRequest(url, o)
 }
 
 // TestFetch : Test api
-func (s *Session) TestFetch(o *opt.Option) *Response {
+func (s *Session) TestFetch(o *reqoptions.Option) *Response {
 	// 测试用的
 	method := strings.ToLower(o.GetMethod())
 	return s.Fetch("http://httpbin.org/"+method, o)
@@ -113,7 +113,7 @@ func (s *Session) SetHeaders(header any) *Session {
 	if header != nil {
 		switch header.(type) {
 		case map[string]string:
-			baseHeaders := opt.NewHeaders()
+			baseHeaders := reqoptions.NewHeaders()
 			for key, value := range header.(map[string]string) {
 				baseHeaders.Set(key, value)
 			}
@@ -127,9 +127,18 @@ func (s *Session) SetHeaders(header any) *Session {
 	return s
 }
 
-func (s *Session) setReqHeaders(req *netHTTP.Request, headers netHTTP.Header) {
+func (s *Session) setReqHeaders(req *netHTTP.Request, headers netHTTP.Header, notUserHeader []string) {
 	if s.headers != nil && *s.headers != nil {
 		req.Header = *s.headers
+
+		if notUserHeader != nil {
+			// 这里只会移除全局里面不用的header
+			for _, key := range notUserHeader {
+				if req.Header.Get(key) != "" {
+					req.Header.Del(key)
+				}
+			}
+		}
 	}
 	if headers != nil {
 		for key, value := range headers {
@@ -173,7 +182,7 @@ func (s *Session) setCookies(rawUrl string) {
 		switch cookie.(type) {
 		case map[string]string:
 			for key, value := range cookie.(map[string]string) {
-				baseCookies := opt.NewCookies()
+				baseCookies := reqoptions.NewCookies()
 				baseCookies.Name = key
 				baseCookies.Value = value
 				baseCookies.Path = "/"
@@ -187,7 +196,7 @@ func (s *Session) setCookies(rawUrl string) {
 		case string:
 			mapCookie := litestr.CookieStringToMap(cookie.(string))
 			for key, value := range mapCookie {
-				baseCookies := opt.NewCookies()
+				baseCookies := reqoptions.NewCookies()
 				baseCookies.Name = key
 				baseCookies.Value = value
 				baseCookies.Path = "/"
@@ -218,8 +227,8 @@ func (s *Session) updateCookies(nowCookie []*netHTTP.Cookie) {
 }
 
 // GetCookies : return global store cookie >>> all saved cookie
-func (s *Session) GetCookies() *opt.Cookie {
-	ck := &opt.Cookie{}
+func (s *Session) GetCookies() *reqoptions.Cookie {
+	ck := &reqoptions.Cookie{}
 	ck.StoreCookies(s.cookies)
 	return ck
 }

@@ -1,7 +1,7 @@
 package litereq
 
 import (
-	"github.com/Heartfilia/litetools/litereq/opt"
+	"github.com/Heartfilia/litetools/litereq/reqoptions"
 	netHTTP "net/http"
 )
 
@@ -13,7 +13,7 @@ type Response struct {
 	Headers       netHTTP.Header
 	Proto         string // 协议版本
 	Status        string // 协议版本
-	Cookies       *opt.Cookie
+	Cookies       *reqoptions.Cookie
 	Ctx           *Context
 	ContentLength int
 	err           error // 记录错误详情

@@ -1,4 +1,4 @@
-package opt
+package reqoptions
 
 import (
 	netHTTP "net/http"
@@ -17,6 +17,7 @@ type Option struct {
 	params         *netURL.Values // 先占位 后续更新
 	_tempParams    any
 	headers        *netHTTP.Header
+	_exceptHeaders []string // 用于屏蔽全局header里面某些key
 	_tempCookies   any
 	cookies        []*netHTTP.Cookie
 	enableCookie   bool // 默认使用 用于某些情况下是否使用cookie的情况

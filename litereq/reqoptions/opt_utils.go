@@ -1,4 +1,4 @@
-package opt
+package reqoptions
 
 import (
 	"github.com/Heartfilia/litetools/litestr"
