@@ -98,9 +98,29 @@ func testReq() {
 		SetVerify(false).   // 还没实现
 		SetRedirects(true). // 还没实现
 		//SetHeaders(map[string]string{"user-agent": "from option"}).
-		//SetCookies(map[string]string{"b": "", "d": "666"}). // cookie兼容 字符串格式和map格式 也兼容cookie对象
-		//SetParams([][2]any{{"k", 1}, {"v", "2"}}).
-		SetCookieEnable(false). // 设置本次请求不使用cookie
+		SetCookies(map[string]string{
+			"_ga_9NN5VESB13":                 "GS1.1.1718678004.1.1.1718678646.0.0.0",
+			"rbzid":                          "LqTdzf/+lSMhG74kN802IypJI4aFkaH05ol3femnjRKy8ZYKkmNBw0hwVk8Z87pDdIODafMHYskrNCzr3NMyl6K+SNgf8CMH5PR+b6R9NsFC46aMLBDVltzo8dC/aNFTZ20IPHX/7tjHVj45zwBtNfzwvYE3XX9JJy0kim/su+bcoTqSdINYAHF5qnaVu7KKWGIeKBaCl/zq+/VJo2No7f9+fIvRgIwyRkYIdW1Z8Qsw6Et3vzSeY7nOXZAV0HEU",
+			"rbzsessionid":                   "3059cea5791b3c68e286e77037093a21",
+			"langpref":                       "zh-cht",
+			"hkticketing.com+cookies":        "true",
+			"__RequestVerificationToken":     "uTAREvsznyPSKE7xCQYXttYwZJf9ojKu0DvIOeDSdiR4_MnS_uZzuMiJYTMOnn1pVQoQHKyIYzdTAKo1GQMfhvMl2QOet2Inir13_eYPBveho--nWYkydkwsI30hFMZz9IOPLA2",
+			"hkticketing.com+5":              "1",
+			"hkticketing.com+1":              "",
+			"hkticketing.com+3":              "iusupov.rk7lq%40rambler.ua",
+			"hkticketing.com+9":              "%2fs63D95SWtn%2btLY1YMgO9lIw6CdidCoGde4Tge%2bpIu4%3d",
+			"policyNEW_hkt_desktop_cht":      "update.of.HKTicketing.PIC",
+			"_gid":                           "GA1.2.1236961276.1728954466",
+			"_dc_gtm_UA-53569925-3":          "1",
+			"hkticketing.com+cp.id":          "b4d39fa3-691c-4f8e-a277-7f98a208c2cd",
+			"hkticketing.com+cp.ex":          "2024-10-15+09%3a17%3a49",
+			"hkticketing.com+cp.st":          "2024-10-15+09%3a07%3a49",
+			"__session:0.49683115807741807:": "https:",
+			"_ga_ZNFWQ54TTS":                 "GS1.1.1728954470.16.0.1728954470.60.0.0",
+			"_ga":                            "GA1.2.1290915446.1718677982",
+		}). // cookie兼容 字符串格式和map格式 也兼容cookie对象
+		SetParams([][2]any{{"k", 1}, {"v", "2"}}).
+		//SetCookieEnable(false). // 设置本次请求不使用cookie
 		//SetJson(map[string]any{
 		//	"test": map[string]any{
 		//		"test1": 123,
@@ -114,7 +134,7 @@ func testReq() {
 	//// 这里优先级高于Fetch里面填写的 如果两边都写了 这里和那边做融合 这里为主
 
 	//response := session.Fetch("http://httpbin.org/post", option)
-	response := session.Fetch("http://httpbin.org/redirect/1", option)
+	response := session.Fetch("http://httpbin.org/get", option)
 
 	fmt.Println(response.Text)
 	fmt.Println(response.StatusCode)
