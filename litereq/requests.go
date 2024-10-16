@@ -67,6 +67,11 @@ func (s *Session) http1Request(url string, o *reqoptions.Option) (*netHTTP.Respo
 	var req *netHTTP.Request
 	var err error
 	baseNewContentType := ""
+
+	if o.GetOrderParam() != "" {
+		url = combineUrl(url, o.GetOrderParam()) // 重新组装对应的url参数
+	}
+
 	switch o.GetMethod() {
 	case "POST", "PUT", "DELETE", "PATCH":
 		var body string
@@ -96,8 +101,9 @@ func (s *Session) http1Request(url string, o *reqoptions.Option) (*netHTTP.Respo
 		return nil, nil, err
 	}
 
-	if o.GetParams() != nil {
-		req.URL.RawQuery = o.GetParams().Encode()
+	if o.GetOrderParam() == "" && o.GetDisorderParams() != nil {
+		// 避免重复设置
+		req.URL.RawQuery = o.GetDisorderParams().Encode()
 	}
 	if baseNewContentType != "" {
 		req.Header.Set("Content-Type", baseNewContentType)

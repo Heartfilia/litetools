@@ -1,6 +1,7 @@
 package litereq
 
 import (
+	"fmt"
 	"github.com/Heartfilia/litetools/litestr"
 	"log"
 	netURL "net/url"
@@ -21,4 +22,13 @@ func mustParseURL(rawURL string) *netURL.URL {
 		return nil
 	}
 	return u
+}
+
+func combineUrl(rawURL string, params string) string {
+	u, err := netURL.Parse(rawURL)
+	if err != nil {
+		log.Println(litestr.E(), ":", err)
+		return rawURL
+	}
+	return fmt.Sprintf("%s://%s%s?%s", u.Scheme, u.Host, u.Path, params)
 }

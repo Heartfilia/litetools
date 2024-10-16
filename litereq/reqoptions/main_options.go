@@ -15,7 +15,8 @@ type Option struct {
 	path           string
 	query          string
 	params         *netURL.Values // 先占位 后续更新
-	_tempParams    any
+	_tempParams    any            // 无序的
+	_tempOderParam string         // 有序的
 	headers        *netHTTP.Header
 	_exceptHeaders []string // 用于屏蔽全局header里面某些key
 	_tempCookies   any

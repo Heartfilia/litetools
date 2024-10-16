@@ -2,16 +2,50 @@ package reqoptions
 
 import (
 	"fmt"
-	"log"
 	netURL "net/url"
+	"strings"
 )
 
+// SetParams : 设置参数 不同类型 效果不一样
+//
+// map[string]any | map[string]string | url.Values --> 最后的参数无序
+//
+// [][2]any | [][2]string | string  --> 最后的参数按照参数顺序拼接
 func (o *Option) SetParams(params any) *Option {
 	o._tempParams = params
 	return o
 }
+func (o *Option) GetOrderParam() string {
+	params := o._tempParams
+	var query string
+	if params != nil {
 
-func (o *Option) GetParams() netURL.Values {
+		switch params.(type) {
+		case string:
+			query = params.(string)
+		case [][2]any:
+			var tempCache []string
+
+			for _, eachParam := range params.([][2]any) {
+				tempCache = append(tempCache, fmt.Sprintf("%v=%v", eachParam[0], eachParam[1]))
+			}
+			if len(tempCache) > 0 {
+				query = netURL.QueryEscape(strings.Join(tempCache, "&"))
+			}
+		case [][2]string:
+			var tempCache []string
+			for _, eachParam := range params.([][2]string) {
+				tempCache = append(tempCache, fmt.Sprintf("%s=%s", eachParam[0], eachParam[1]))
+			}
+			if len(tempCache) > 0 {
+				query = netURL.QueryEscape(strings.Join(tempCache, "&"))
+			}
+		}
+	}
+	return query
+}
+
+func (o *Option) GetDisorderParams() netURL.Values {
 	// 传入
 	params := o._tempParams
 	if params != nil {
@@ -26,25 +60,8 @@ func (o *Option) GetParams() netURL.Values {
 			for k, v := range params.(map[string]string) {
 				query.Set(k, v)
 			}
-		case [][2]any:
-			for _, eachParam := range params.([][2]any) {
-				query.Set(fmt.Sprintf("%v", eachParam[0]), fmt.Sprintf("%v", eachParam[1]))
-			}
-		case [][2]string:
-			for _, eachParam := range params.([][2]string) {
-				query.Set(eachParam[0], eachParam[1])
-			}
 		case netURL.Values:
 			query = params.(netURL.Values)
-		case string:
-			items := parseStringParams(params.(string))
-			if items != nil {
-				for k, v := range items {
-					query.Set(k, v)
-				}
-			}
-		default:
-			log.Panicln("Params only support <url.Values || map[string]string || map[string]any || string || [][2]any || [][2]string>")
 		}
 
 		o.params = &query

@@ -109,15 +109,16 @@ func testReq() {
 			"buyin_app_id_v2":    "13",
 			"buyin_shop_type":    "11",
 		}). // cookie兼容 字符串格式和map格式 也兼容cookie对象
-		//SetParams([][2]any{
+		//SetParams([][2]string{
 		//	{"fp", "f1118f9f298aa61ff10d3686206c7ccb25700247f7bdffd16c"},
 		//	{"msToken", ""},
-		//	{"page", 1},
+		//	{"page", "1"},
 		//	{"uid", "v2_0a276d5f57b27638eef5cc5ad0d02c51ae9e9f970e1b04b4f14e0d60f9b3bd5fb75c63c31279fe23a61a4b0a3c9a1e037b6fe2584833ab3a330cfda4c0b8b7d40df6aa09ecc3bbaa56a4299993c3500b35de715cfc75b3a35f9f8feb4a22a58759d2207d578f5958ee10c2a2b60d18e5ade4c9012001220103a9160905"},
 		//	{"verifyFp", "f1118f9f298aa61ff10d3686206c7ccb25700247f7bdffd16c"},
-		//	{"with_product", "true"},
+		//	{"with_product", "false"},
 		//	{"a_bogus", "dXm0QDwfdDDkvd8g5vdLfY3qIf13Y/040SVkMDZMBn3A1y39HMOa9exYDHhvwnmjNT/dIeujy4hbYNQprQ/b8ZwfHuix/2xDmESkKl5Q5xSSs1XJtyUgnzUimktUCec2-i-lrOXMw7lHKbmg09oHmhK4bIOwu3GMyD=="},
 		//}).
+		SetParams("d=4&a=1&b=2&c=3").
 		//SetCookieEnable(false). // 设置本次请求不使用cookie
 		//SetJson(map[string]any{
 		//	"test": map[string]any{
@@ -125,7 +126,7 @@ func testReq() {
 		//	}}).
 		//SetProxy("http://6h65j8:mv2imgwv@43.248.79.229:64060").
 		SetTimeout(3000).
-		SetProxy("http://127.0.0.1:8080")
+		SetProxy("http://127.0.0.1:9000")
 	//UpdateHeaderMap(map[string]string{
 	//	"referer": "abc",
 	//	"token":   "1111",
@@ -133,7 +134,7 @@ func testReq() {
 	//}).ExceptGlobalHeaders([]string{"token"})
 	//// 这里优先级高于Fetch里面填写的 如果两边都写了 这里和那边做融合 这里为主
 
-	response := session.Fetch("https://buyin.jinritemai.com/api/authorStatData/authorVideoDetailList?fp=f1118f9f298aa61ff10d3686206c7ccb25700247f7bdffd16c&msToken=&page=1&uid=v2_0a276d5f57b27638eef5cc5ad0d02c51ae9e9f970e1b04b4f14e0d60f9b3bd5fb75c63c31279fe23a61a4b0a3c9a1e037b6fe2584833ab3a330cfda4c0b8b7d40df6aa09ecc3bbaa56a4299993c3500b35de715cfc75b3a35f9f8feb4a22a58759d2207d578f5958ee10c2a2b60d18e5ade4c9012001220103a9160905&verifyFp=f1118f9f298aa61ff10d3686206c7ccb25700247f7bdffd16c&with_product=true&a_bogus=dXm0QDwfdDDkvd8g5vdLfY3qIf13Y%2F040SVkMDZMBn3A1y39HMOa9exYDHhvwnmjNT%2FdIeujy4hbYNQprQ%2Fb8ZwfHuix%2F2xDmESkKl5Q5xSSs1XJtyUgnzUimktUCec2-i-lrOXMw7lHKbmg09oHmhK4bIOwu3GMyD%3D%3D", option)
+	response := session.Fetch("https://buyin.jinritemai.com/api/authorStatData/authorVideoDetailList", option)
 
 	fmt.Println(response.Text)
 	fmt.Println(response.StatusCode)
