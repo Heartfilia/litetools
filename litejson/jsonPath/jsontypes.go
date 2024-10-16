@@ -75,12 +75,22 @@ func (r *Result) StringSlice() []string {
 	}
 	return nil
 }
+
 func (r *Result) Error() error {
 	return r.Err
 }
 
 func (r *Result) String() string {
 	if r.Value() != nil {
+		thisValueType := fmt.Sprintf("%v", reflect.TypeOf(r.Value()))
+		if strings.Index(thisValueType, "[") != -1 || strings.Index(thisValueType, "{") != -1 {
+			// 如果 可能是结构类型的 转变为json
+			marshal, err := json.Marshal(r.Value())
+			if err != nil {
+				return fmt.Sprintf("%v", r.Value())
+			}
+			return string(marshal)
+		}
 		return fmt.Sprintf("%v", r.Value())
 	}
 	return ""
