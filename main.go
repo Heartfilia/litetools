@@ -84,57 +84,56 @@ func testReq() {
 	// 数据安全 加锁 啥的 后面整体流程实现了之后再去处理
 	defer litetime.Timer()()
 
-	session := litereq.NewSession().
-		SetVerbose(true).
-		//SetHTTP2(true). // 还没实现
-		//SetTimeout(2000).
-		//SetRetry(2).
-		//SetCookies(map[string]string{"a": "1"}).                     // 全局cookie  后面单独的参数配置的cookie会融合到这里面一起请求
-		SetHeaders(map[string]string{"user-agent": "lite-tools V2", "token": "222222", "xtoken": "11111"}) // . // 兼容map格式和headers对象
+	session := litereq.NewSession() // .
+	//SetVerbose(true).
+	//SetHTTP2(true). // 还没实现
+	//SetTimeout(2000).
+	//SetRetry(2).
+	//SetCookies(map[string]string{"a": "1"}).                     // 全局cookie  后面单独的参数配置的cookie会融合到这里面一起请求
+	//SetHeaders(map[string]string{"user-agent": "lite-tools V2", "token": "222222", "xtoken": "11111"}) // . // 兼容map格式和headers对象
 	//SetProxy("http://6h65j8:mv2imgwv@61.139.65.104:61063")  // 全局代理 如果option那边传入 按那边为主
 
 	option := reqoptions.NewOption().
 		//SetMethod("POST").
-		SetVerify(false).   // 还没实现
-		SetRedirects(true). // 还没实现
-		//SetHeaders(map[string]string{"user-agent": "from option"}).
+		//SetVerify(false).   // 还没实现
+		//SetRedirects(true). // 还没实现
+		SetHeaders(map[string]string{
+			"Referer":         "https://buyin.jinritemai.com/dashboard/servicehall/daren-profile",
+			"Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+			"Accept":          "application/json, text/plain, */*",
+			"User-Agent":      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/29.36 Edg/27.0.2045.20",
+		}).
 		SetCookies(map[string]string{
-			"_ga_9NN5VESB13":                 "GS1.1.1718678004.1.1.1718678646.0.0.0",
-			"rbzid":                          "LqTdzf/+lSMhG74kN802IypJI4aFkaH05ol3femnjRKy8ZYKkmNBw0hwVk8Z87pDdIODafMHYskrNCzr3NMyl6K+SNgf8CMH5PR+b6R9NsFC46aMLBDVltzo8dC/aNFTZ20IPHX/7tjHVj45zwBtNfzwvYE3XX9JJy0kim/su+bcoTqSdINYAHF5qnaVu7KKWGIeKBaCl/zq+/VJo2No7f9+fIvRgIwyRkYIdW1Z8Qsw6Et3vzSeY7nOXZAV0HEU",
-			"rbzsessionid":                   "3059cea5791b3c68e286e77037093a21",
-			"langpref":                       "zh-cht",
-			"hkticketing.com+cookies":        "true",
-			"__RequestVerificationToken":     "uTAREvsznyPSKE7xCQYXttYwZJf9ojKu0DvIOeDSdiR4_MnS_uZzuMiJYTMOnn1pVQoQHKyIYzdTAKo1GQMfhvMl2QOet2Inir13_eYPBveho--nWYkydkwsI30hFMZz9IOPLA2",
-			"hkticketing.com+5":              "1",
-			"hkticketing.com+1":              "",
-			"hkticketing.com+3":              "iusupov.rk7lq%40rambler.ua",
-			"hkticketing.com+9":              "%2fs63D95SWtn%2btLY1YMgO9lIw6CdidCoGde4Tge%2bpIu4%3d",
-			"policyNEW_hkt_desktop_cht":      "update.of.HKTicketing.PIC",
-			"_gid":                           "GA1.2.1236961276.1728954466",
-			"_dc_gtm_UA-53569925-3":          "1",
-			"hkticketing.com+cp.id":          "b4d39fa3-691c-4f8e-a277-7f98a208c2cd",
-			"hkticketing.com+cp.ex":          "2024-10-15+09%3a17%3a49",
-			"hkticketing.com+cp.st":          "2024-10-15+09%3a07%3a49",
-			"__session:0.49683115807741807:": "https:",
-			"_ga_ZNFWQ54TTS":                 "GS1.1.1728954470.16.0.1728954470.60.0.0",
-			"_ga":                            "GA1.2.1290915446.1718677982",
+			"buyin_shop_type_v2": "11",
+			"buyin_app_id":       "13",
+			"buyin_app_id_v2":    "13",
+			"buyin_shop_type":    "11",
 		}). // cookie兼容 字符串格式和map格式 也兼容cookie对象
-		SetParams([][2]any{{"k", 1}, {"v", "2"}}).
+		//SetParams([][2]any{
+		//	{"fp", "f1118f9f298aa61ff10d3686206c7ccb25700247f7bdffd16c"},
+		//	{"msToken", ""},
+		//	{"page", 1},
+		//	{"uid", "v2_0a276d5f57b27638eef5cc5ad0d02c51ae9e9f970e1b04b4f14e0d60f9b3bd5fb75c63c31279fe23a61a4b0a3c9a1e037b6fe2584833ab3a330cfda4c0b8b7d40df6aa09ecc3bbaa56a4299993c3500b35de715cfc75b3a35f9f8feb4a22a58759d2207d578f5958ee10c2a2b60d18e5ade4c9012001220103a9160905"},
+		//	{"verifyFp", "f1118f9f298aa61ff10d3686206c7ccb25700247f7bdffd16c"},
+		//	{"with_product", "true"},
+		//	{"a_bogus", "dXm0QDwfdDDkvd8g5vdLfY3qIf13Y/040SVkMDZMBn3A1y39HMOa9exYDHhvwnmjNT/dIeujy4hbYNQprQ/b8ZwfHuix/2xDmESkKl5Q5xSSs1XJtyUgnzUimktUCec2-i-lrOXMw7lHKbmg09oHmhK4bIOwu3GMyD=="},
+		//}).
 		//SetCookieEnable(false). // 设置本次请求不使用cookie
 		//SetJson(map[string]any{
 		//	"test": map[string]any{
 		//		"test1": 123,
 		//	}}).
 		//SetProxy("http://6h65j8:mv2imgwv@43.248.79.229:64060").
-		SetTimeout(3000).UpdateHeaderMap(map[string]string{
-		"referer": "abc",
-		"token":   "1111",
-		//"user-agent": "lite-tools V3",
-	}).ExceptGlobalHeaders([]string{"token"})
+		SetTimeout(3000).
+		SetProxy("http://127.0.0.1:8080")
+	//UpdateHeaderMap(map[string]string{
+	//	"referer": "abc",
+	//	"token":   "1111",
+	//	//"user-agent": "lite-tools V3",
+	//}).ExceptGlobalHeaders([]string{"token"})
 	//// 这里优先级高于Fetch里面填写的 如果两边都写了 这里和那边做融合 这里为主
 
-	//response := session.Fetch("http://httpbin.org/post", option)
-	response := session.Fetch("http://httpbin.org/get", option)
+	response := session.Fetch("https://buyin.jinritemai.com/api/authorStatData/authorVideoDetailList?fp=f1118f9f298aa61ff10d3686206c7ccb25700247f7bdffd16c&msToken=&page=1&uid=v2_0a276d5f57b27638eef5cc5ad0d02c51ae9e9f970e1b04b4f14e0d60f9b3bd5fb75c63c31279fe23a61a4b0a3c9a1e037b6fe2584833ab3a330cfda4c0b8b7d40df6aa09ecc3bbaa56a4299993c3500b35de715cfc75b3a35f9f8feb4a22a58759d2207d578f5958ee10c2a2b60d18e5ade4c9012001220103a9160905&verifyFp=f1118f9f298aa61ff10d3686206c7ccb25700247f7bdffd16c&with_product=true&a_bogus=dXm0QDwfdDDkvd8g5vdLfY3qIf13Y%2F040SVkMDZMBn3A1y39HMOa9exYDHhvwnmjNT%2FdIeujy4hbYNQprQ%2Fb8ZwfHuix%2F2xDmESkKl5Q5xSSs1XJtyUgnzUimktUCec2-i-lrOXMw7lHKbmg09oHmhK4bIOwu3GMyD%3D%3D", option)
 
 	fmt.Println(response.Text)
 	fmt.Println(response.StatusCode)
