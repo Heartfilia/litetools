@@ -154,7 +154,8 @@ func (s *Session) setReqCookies(req *netHTTP.Request, cookies []*netHTTP.Cookie)
 		for _, ck := range cookies {
 			req.AddCookie(ck)
 		}
-	} else if s.cookies != nil {
+	}
+	if s.cookies != nil {
 		for _, ck := range s.cookies {
 			req.AddCookie(ck)
 		}
@@ -173,9 +174,8 @@ func (s *Session) SetCookies(cookie any) *Session {
 func (s *Session) setCookies(rawUrl string) {
 	// 这个地方才是主要的操作 option里面的操作了 --> 这里其实属于慢操作，核心的
 	// 这里不需要判断是否在cookie里面已经存在的值了，因为初始化这里的时候才会添加cookie  但是option那边不是 会出现同样的cookie值 避免猛增
-	if s.cookies == nil {
-		s.cookies = make([]*netHTTP.Cookie, 0)
-	}
+	s.cookies = make([]*netHTTP.Cookie, 0) // 不管怎么样 这里的cookie一定是覆盖了存的
+
 	cookie := s._tempCookies
 	if len(s.cookies) == 0 && cookie != nil { // 第一次原始cookie不存在数据的时候才往下走
 		domain := parseDomain(rawUrl)
