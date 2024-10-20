@@ -20,17 +20,26 @@ TODO 下面设置session的全局参数的时候 需要枷锁 比如 cookie  hea
 
 var rWmu sync.RWMutex
 
+type cacher struct {
+	domain          string                       // 要爬的网站的信息 --> 这里由第一步解析成domain放入
+	allowWebsites   []string                     // 允许爬取的domain --> 先不管这个 预留
+	waitParseCookie any                          // 任意格式的cookie
+	cookie          map[string]map[string]string // 缓存生命周期内的所有cookie {"*":{"a":obj},"baidu.com":{"b":obj}}
+	header          map[string]string            // 后面再管这个 先弄上面的cookie
+	// 后续有其他的 可以放
+}
+
 type Session struct {
-	maxRetry     int    // max retry, default 1
-	http2        bool   // default false --> 先不忙支持 后面我会弄的
-	verbose      bool   // default false 就是用于打印详细日志的
-	timeout      int    // 毫秒 的单位 不传不管 这里是全局参数 在单独请求哪里也有这个控制
-	host         string // 我也不知道 反正设置host最好单独抠出来
-	client       *netHTTP.Client
-	headers      *netHTTP.Header   // 全局headers
-	cookies      []*netHTTP.Cookie // 全局的cookies
-	_tempCookies any               // 用于临时记录
-	_tempProxy   string            // 临时记录proxy
+	maxRetry int    // max retry, default 1
+	http2    bool   // default false --> 先不忙支持 后面我会弄的
+	verbose  bool   // default false 就是用于打印详细日志的
+	timeout  int    // 毫秒 的单位 不传不管 这里是全局参数 在单独请求哪里也有这个控制
+	host     string // 我也不知道 反正设置host最好单独抠出来
+	client   *netHTTP.Client
+	headers  *netHTTP.Header // 全局headers
+	//cookies    []*netHTTP.Cookie // 全局的cookies
+	cache      cacher // 生命周期缓存数据用
+	_tempProxy string // 临时记录proxy
 }
 
 // NewSession : create base session object that can be chained
@@ -150,14 +159,20 @@ func (s *Session) setReqHeaders(req *netHTTP.Request, headers netHTTP.Header, no
 }
 
 func (s *Session) setReqCookies(req *netHTTP.Request, cookies []*netHTTP.Cookie) {
+	thisCookie := s.cache.cookie
 	if cookies != nil {
 		for _, ck := range cookies {
-			req.AddCookie(ck)
+			thisCookie["*"][ck.Name] = ck.Value
+			thisCookie[ck.Domain][ck.Name] = ck.Value // 这里其实有点问题 后续再管
 		}
 	}
-	if s.cookies != nil {
-		for _, ck := range s.cookies {
-			req.AddCookie(ck)
+
+	// 这里可以增加一个 允许域 的操作 只要有[*]存在就全取 现在默认
+	if thisCookie != nil {
+		stringCookie := litestr.CookieMapToString(thisCookie["*"])
+		if stringCookie != "" {
+			req.Header.Del("Cookie")
+			req.Header.Set("Cookie", stringCookie)
 		}
 	}
 }
@@ -167,18 +182,39 @@ func (s *Session) setReqCookies(req *netHTTP.Request, cookies []*netHTTP.Cookie)
 //
 // >>> string<a=1;b=2> | map[string]string<map[string]string{"a":"1","b":"2"}> | *http.Cookie | []*http.Cookie
 func (s *Session) SetCookies(cookie any) *Session {
-	s._tempCookies = cookie
+	s.cache.waitParseCookie = cookie
 	return s
+}
+
+func (s *Session) setCacheCookie(domain string, cookie *netHTTP.Cookie) {
+	rWmu.RLock()
+	defer rWmu.RUnlock()
+
+	if s.cache.cookie == nil {
+		s.cache.cookie = map[string]map[string]string{}
+	}
+
+	if _, exists := s.cache.cookie[domain]; !exists {
+		s.cache.cookie[domain] = make(map[string]string, 0)
+	}
+
+	if _, exists := s.cache.cookie["*"]; !exists {
+		s.cache.cookie["*"] = make(map[string]string, 0)
+	}
+	// 采用直接覆盖的操作
+	s.cache.cookie["*"][cookie.Name] = cookie.Value
+	s.cache.cookie[domain][cookie.Name] = cookie.Value
 }
 
 func (s *Session) setCookies(rawUrl string) {
 	// 这个地方才是主要的操作 option里面的操作了 --> 这里其实属于慢操作，核心的
 	// 这里不需要判断是否在cookie里面已经存在的值了，因为初始化这里的时候才会添加cookie  但是option那边不是 会出现同样的cookie值 避免猛增
-	s.cookies = make([]*netHTTP.Cookie, 0) // 不管怎么样 这里的cookie一定是覆盖了存的
+	//s.cookies = make([]*netHTTP.Cookie, 0) // 不管怎么样 这里的cookie一定是覆盖了存的
+	domain := parseDomain(rawUrl)
+	s.cache.domain = domain
+	cookie := s.cache.waitParseCookie
+	if cookie != nil { // 第一次原始cookie不存在数据的时候才往下走
 
-	cookie := s._tempCookies
-	if len(s.cookies) == 0 && cookie != nil { // 第一次原始cookie不存在数据的时候才往下走
-		domain := parseDomain(rawUrl)
 		switch cookie.(type) {
 		case map[string]string:
 			for key, value := range cookie.(map[string]string) {
@@ -187,12 +223,15 @@ func (s *Session) setCookies(rawUrl string) {
 				baseCookies.Value = value
 				baseCookies.Path = "/"
 				baseCookies.Domain = domain
-				s.cookies = append(s.cookies, baseCookies)
+				s.setCacheCookie(domain, baseCookies)
 			}
 		case []*netHTTP.Cookie:
-			s.cookies = cookie.([]*netHTTP.Cookie)
+			for _, ck := range cookie.([]*netHTTP.Cookie) {
+				s.setCacheCookie(ck.Domain, ck)
+			}
 		case *netHTTP.Cookie:
-			s.cookies = append(s.cookies, cookie.(*netHTTP.Cookie))
+			thisCookie := cookie.(*netHTTP.Cookie)
+			s.setCacheCookie(thisCookie.Domain, thisCookie)
 		case string:
 			mapCookie := litestr.CookieStringToMap(cookie.(string))
 			for key, value := range mapCookie {
@@ -201,7 +240,7 @@ func (s *Session) setCookies(rawUrl string) {
 				baseCookies.Value = value
 				baseCookies.Path = "/"
 				baseCookies.Domain = domain
-				s.cookies = append(s.cookies, baseCookies)
+				s.setCacheCookie(domain, baseCookies)
 			}
 		default:
 			log.Panicln("Cookies only support <[]*http.Cookie || *http.Cookie || map[string]string || string>")
@@ -209,19 +248,17 @@ func (s *Session) setCookies(rawUrl string) {
 	}
 }
 
+func (s *Session) DelCookie(name string) *Session {
+	if _, exists := s.cache.cookie["*"]; exists {
+		delete(s.cache.cookie["*"], name)
+	}
+	return s
+}
+
 func (s *Session) updateCookies(nowCookie []*netHTTP.Cookie) {
 	rWmu.RLock()
 	for _, ck := range nowCookie {
-		saved := false
-		for ind, savedCk := range s.cookies {
-			if ck.Name == savedCk.Name {
-				s.cookies[ind] = ck
-				saved = true
-			}
-		}
-		if !saved {
-			s.cookies = append(s.cookies, ck)
-		}
+		s.setCacheCookie(ck.Domain, ck)
 	}
 	rWmu.RUnlock()
 }
@@ -229,7 +266,19 @@ func (s *Session) updateCookies(nowCookie []*netHTTP.Cookie) {
 // GetCookies : return global store cookie >>> all saved cookie
 func (s *Session) GetCookies() *reqoptions.Cookie {
 	ck := &reqoptions.Cookie{}
-	ck.StoreCookies(s.cookies)
+	if cookieFiled, exists := s.cache.cookie["*"]; exists {
+		thisCookie := make([]*netHTTP.Cookie, 0)
+		for k, v := range cookieFiled {
+			thisCK := reqoptions.NewCookies()
+			thisCK.Name = k
+			thisCK.Value = v
+			thisCookie = append(thisCookie, thisCK)
+		}
+		if len(thisCookie) > 0 {
+			ck.StoreCookies(thisCookie)
+		}
+	}
+
 	return ck
 }
 

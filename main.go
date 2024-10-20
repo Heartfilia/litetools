@@ -141,11 +141,27 @@ func testReq() {
 	fmt.Println(response.Error())
 }
 
+func reqTest() {
+	s := litereq.NewSession().
+		SetHeaders(map[string]string{"user-agent": "lite-tools"}).
+		SetCookies("a=1;b=2")
+	r := s.Fetch("https://www.baidu.com", nil)
+	fmt.Println(1, r.Cookies.String())
+
+	o := reqoptions.NewOption().SetCookies("a=5")
+	resp := s.Fetch("http://httpbin.org/get", o)
+	fmt.Println(3, resp.Text)
+	fmt.Println(4, resp.Cookies.String())
+	fmt.Println(5, s.GetCookies().String())
+
+}
+
 func main() {
 	//testTime()
 	//testJson()
 	//testNet()
 	//testStr()
 	//testTag()
-	testReq()
+	//testReq()
+	reqTest()
 }
