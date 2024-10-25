@@ -143,10 +143,9 @@ func testReq() {
 
 func reqTest() {
 	s := litereq.NewSession().
-		SetHeaders(map[string]string{"user-agent": "lite-tools"}).
-		SetCookies("a=1;b=2")
-	r := s.Fetch("https://www.baidu.com", nil)
-	fmt.Println(1, r.Cookies.String())
+		SetHeaders(map[string]string{"user-agent": "lite-tools"})
+	//r := s.Fetch("https://www.baidu.com", nil)
+	//fmt.Println(1, r.Cookies.String())
 
 	o := reqoptions.NewOption().SetCookies("a=5")
 	resp := s.Fetch("http://httpbin.org/get", o)

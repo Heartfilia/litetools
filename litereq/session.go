@@ -159,17 +159,24 @@ func (s *Session) setReqHeaders(req *netHTTP.Request, headers netHTTP.Header, no
 }
 
 func (s *Session) setReqCookies(req *netHTTP.Request, cookies []*netHTTP.Cookie) {
-	thisCookie := s.cache.cookie
+
+	if s.cache.cookie == nil {
+		s.cache.cookie = map[string]map[string]string{"*": {}}
+	}
+
 	if cookies != nil {
 		for _, ck := range cookies {
-			thisCookie["*"][ck.Name] = ck.Value
-			thisCookie[ck.Domain][ck.Name] = ck.Value // 这里其实有点问题 后续再管
+			s.cache.cookie["*"][ck.Name] = ck.Value
+			if _, exists := s.cache.cookie[ck.Domain]; !exists {
+				s.cache.cookie[ck.Domain] = map[string]string{}
+			}
+			s.cache.cookie[ck.Domain][ck.Name] = ck.Value // 这里其实有点问题 后续再管
 		}
 	}
 
 	// 这里可以增加一个 允许域 的操作 只要有[*]存在就全取 现在默认
-	if thisCookie != nil {
-		stringCookie := litestr.CookieMapToString(thisCookie["*"])
+	if s.cache.cookie != nil {
+		stringCookie := litestr.CookieMapToString(s.cache.cookie["*"])
 		if stringCookie != "" {
 			req.Header.Del("Cookie")
 			req.Header.Set("Cookie", stringCookie)
