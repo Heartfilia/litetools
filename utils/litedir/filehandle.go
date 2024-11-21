@@ -16,6 +16,20 @@ func FileExists(pathName string) bool {
 	}
 }
 
+func IsDir(pathName string) bool {
+	// 判断路径 是不是文件夹
+	s, err := os.Stat(pathName)
+	if err != nil {
+		return false
+	}
+	return s.IsDir()
+}
+
+func IsFile(pathName string) bool {
+	// 判断路径是不是文件
+	return !IsDir(pathName)
+}
+
 func FileReader(pathName string) string {
 	// 直接获取文本然后直接拿到文本
 	open, err := os.Open(pathName)
