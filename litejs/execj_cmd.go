@@ -30,23 +30,15 @@ func (c *CmdNode) Call(args ...string) []byte {
 		log.Printf("%s Error executing JavaScript file: %v\n", litestr.E(), err)
 		return nil
 	}
-	if output == nil && c.Verbose == true {
-		log.Printf(`%s 可能js没有按照要求进行适配：这个脚本是获取 命令行执行 node 后console.log得到的数据,所以需要 js那边调用，示例如下:
-实际是 >>> node xxx.js 参数1 参数2 ....   无参数可不加
-将下面的内容放到你的js代码最后一块即可 调用的函数 换成你自己的
-----------------------------------------------------------------------------
-%s %s() {
-    %s args = process.argv.slice(2); // <<< 如果有参数的话从这里解析得到
-    %s.%s(这里换成你的函数(...args));
-}
-
-%s()   // 这里就是调用方法
-----------------------------------------------------------------------------
-`, litestr.W(),
-			litestr.ColorString("function", "yellow"), litestr.ColorString("processArguments", "blue"),
-			litestr.ColorString("const", "yellow"), litestr.ColorString("console", "purple"),
-			litestr.ColorString("log", "blue"), litestr.ColorString("processArguments", "blue"),
-		)
+	if len(output) == 0 && c.Verbose == true {
+		log.Printf(`%s
+%s
++------------------------------------------------------------------------------------------+
+|   (function(args){console.log(%s(...args));})(process.argv.slice(2))   |
++------------------------------------------------------------------------------------------+
+%s：如果js返回的是一个对象最好是<JSON.stringify()>处理一次,要不然golang的json包会报错
+`, litestr.W(), litestr.ColorString("将下面的内容放到你的js代码最后一行即可 调用的函数 换成你自己的", "red"), litestr.ColorString("这里换成你的函数名称", "green"),
+			litestr.ColorString("特别注意", "yellow"))
 	}
 	return output
 }
