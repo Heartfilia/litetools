@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/Heartfilia/litetools/litejs"
 	"github.com/Heartfilia/litetools/litejson"
 	"github.com/Heartfilia/litetools/litenet"
 	"github.com/Heartfilia/litetools/litereq"
@@ -155,6 +156,14 @@ func reqTest() {
 
 }
 
+func testJS() {
+	cmd := litejs.CmdNode{
+		JsPath:  "test\\rbzid.js", // 最好写绝对路径 相对路径我还没测试 晚点...
+		Verbose: true,             // 如果结果不对的时候打印提示
+	}
+	fmt.Println(cmd.Call("DrmK8giIdcVRRZq8XRNp5aRujILYxhBQEuOQc\\/q1b0nKD2IvT0P5u3TqHeTtOSocz0p2pLFb+0A\\/eMMeQX6ImMapoAurPqEPC7uAvM104ZYAfP9k1fSjJz+d0\\/EPLwepf9M5CDPG6sDXkA03wOnGs4H\\/9FtxvE5DUCxRoCaV0JWIU5L8M+ywiTilxLJnFKbFVeY+46g\\/OhdWp8WI6+\\/ynI1+1QWQwV8bFgM1sNNGUG2Jql7JpofNkQn1LQb1SHP5")) // 有参数就传 没有就不管  因为是node那边调用 所以不需要传入函数名称
+}
+
 func main() {
 	//testTime()
 	//testJson()
@@ -162,5 +171,6 @@ func main() {
 	//testStr()
 	//testTag()
 	//testReq()
-	reqTest()
+	//reqTest()
+	testJS()
 }
