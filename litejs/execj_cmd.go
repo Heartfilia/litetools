@@ -16,7 +16,9 @@ type CmdNode struct {
 	Verbose bool   // 是否需要打印提示 - 默认不打印
 }
 
-func (c *CmdNode) Call(args ...string) string {
+// Call
+// 调用原生的 node 来获取结果
+func (c *CmdNode) Call(args ...string) []byte {
 	if c.Node == "" {
 		c.Node = "node"
 	}
@@ -26,10 +28,9 @@ func (c *CmdNode) Call(args ...string) string {
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Printf("%s Error executing JavaScript file: %v\n", litestr.E(), err)
-		return ""
+		return nil
 	}
-	res := string(output)
-	if res == "" && c.Verbose == true {
+	if output != nil && c.Verbose == true {
 		log.Printf(`%s 可能js没有按照要求进行适配：这个脚本是获取 命令行执行 node 后console.log得到的数据,所以需要 js那边调用，示例如下:
 实际是 >>> node xxx.js 参数1 参数2 ....   无参数可不加
 将下面的内容放到你的js代码最后一块即可 调用的函数 换成你自己的
@@ -47,5 +48,5 @@ func (c *CmdNode) Call(args ...string) string {
 			litestr.ColorString("log", "blue"), litestr.ColorString("processArguments", "blue"),
 		)
 	}
-	return res
+	return output
 }
