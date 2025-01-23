@@ -35,11 +35,12 @@ func (p *ProxyInfo) URL() *url.URL {
 	}
 	return parseURL(p.ProxyIp)
 }
+
 func parseURL(proxyIp string) *url.URL {
 	if proxyIp == "" {
 		return nil
 	}
-	prefix := "http://"
+	prefix := "http" + "://" // 避免pycharm的http提示而已
 	if strings.HasPrefix(proxyIp, "socks5://") {
 		prefix = "socks5://"
 	}
@@ -47,7 +48,7 @@ func parseURL(proxyIp string) *url.URL {
 	s := strings.Split(proxy, ":")
 	pUrl, err := url.Parse(prefix + s[0] + ":" + s[1])
 	if err != nil {
-		panic("无效的ProxyUrl")
+		panic("invalid ProxyUrl")
 	}
 	if len(s) == 4 {
 		pUrl.User = url.UserPassword(s[2], s[3])
@@ -61,6 +62,7 @@ func (p *ProxyInfo) Expired() time.Duration {
 	}
 	return maxProxyExpired
 }
+
 func (p *ProxyInfo) String() string {
 	if p == nil {
 		return ""

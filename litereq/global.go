@@ -10,6 +10,17 @@ const (
 	DefaultTimeout  = 5 * time.Second
 )
 
+// do request
+
+type doResponse int
+
+const (
+	doOK doResponse = iota
+	doConnect
+	doValidate
+	doHandle
+)
+
 // proxy
 
 const (
