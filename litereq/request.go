@@ -35,7 +35,6 @@ func Build(urlPath string) *Builder {
 	build.ub.BaseURL(urlPath)
 	build.ub.Scheme(u.Scheme)
 	build.ub.Host(u.Host)
-	build.ub.Path(u.Path)
 	return build
 }
 
@@ -53,6 +52,11 @@ func (b *Builder) URL() (u *url.URL, err error) {
 		return u, joinErrs(ErrURL, err)
 	}
 	return u, nil
+}
+
+func (b *Builder) Path(p string) *Builder {
+	b.ub.Path(p)
+	return b
 }
 
 func (b *Builder) BodyMd5() []byte {
@@ -158,7 +162,18 @@ func (b *Builder) ProxyFunc(src ProxyGetter) *Builder {
 }
 
 func (b *Builder) Header(key string, values ...string) *Builder {
+	b.rb.Header(key, values...)
+	return b
+}
 
+func (b *Builder) Cookie(name, value string) *Builder {
+	b.rb.Cookie(name, value)
+	return b
+}
+
+// CookieJar adds a cookieJar to a request.
+func (b *Builder) CookieJar(jar *cookiejar.Jar) *Builder {
+	b.cookieJar = jar
 	return b
 }
 
@@ -168,12 +183,18 @@ func (b *Builder) Body(src BodyGetter) *Builder {
 }
 
 func (b *Builder) BodyWriter(f func(w io.Writer) error) *Builder {
-	b.Body(BodyWriter(f))
+	b.rb.Body(BodyWriter(f))
 	return b
 }
 
 func (b *Builder) ContentType(ct string) *Builder {
-	return b.Header("Content-Type", ct)
+	b.rb.Header("Content-Type", ct)
+	return b
+}
+
+func (b *Builder) UserAgent(ua string) *Builder {
+	b.rb.Header("User-Agent", ua)
+	return b
 }
 
 func (b *Builder) Retry(r int) *Builder {

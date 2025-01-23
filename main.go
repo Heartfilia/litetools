@@ -82,11 +82,18 @@ func testTag() {
 
 func testReq() {
 	defer litetime.Timer()()
-	rq := litereq.Build("http://httpbin.org/get").Fetch()
+	rq := litereq.Build("http://httpbin.org/get").
+		Header("referer", "https://www.baidu.com").
+		Header("UAX", "hhh").
+		Cookie("aaa", "1111").
+		Cookie("bbbb", "22222").
+		//Proxy("http://127.0.0.1:7890").
+		UserAgent("lite-tools/v1").
+		Fetch()
 	if rq.Error() != nil {
 		fmt.Println(rq.Error())
 	} else {
-		fmt.Println(rq.Text)
+		fmt.Println(rq)
 	}
 }
 
