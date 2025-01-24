@@ -94,26 +94,13 @@ func testReq() {
 		//Header("UAX", "hhh").
 		//UserAgent("lite-tools/v1").
 		//H1(true).
-		Headers(map[string]string{"referer": "https://www.baidu.com", "xxx": "123"})
-	//Param("a", "1").
-	//Param("b", "2").
-	//Param("c").
+
+		Headers(map[string]string{"referer": "https://www.baidu.com", "xxx": "123", "user-agent": "lite-rq"})
 	//Param("d", "3").
 	//Params("a=1&b=&c=2").
 
-	//res := rq.Get("http://httpbin.org/get")
-	//fmt.Println(res.Text)
-
-	resp := rq.Data("a=1&b=2&c=3").Post("http://httpbin.org/post")
-	fmt.Println(resp.Text)
-	fmt.Println(resp.Proto)
-	//Get("http://httpbin.org/get")
-	//Post("http://httpbin.org/post")
-	//if rq.Error() != nil {
-	//	fmt.Println(rq.Error())
-	//} else {
-	//	fmt.Println(rq)
-	//}
+	res := rq.Get("https://www.baidu.com")
+	fmt.Println(res.Header)
 }
 
 func reqTest() {

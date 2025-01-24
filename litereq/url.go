@@ -32,6 +32,10 @@ func (ub *urlBuilder) Path(path string) {
 	ub.paths = append(ub.paths, path)
 }
 
+func (ub *urlBuilder) emptyParam() {
+	ub.params = make([]multimap, 0)
+}
+
 func (ub *urlBuilder) Param(key string, values ...string) {
 	ub.params = append(ub.params, multimap{key, values})
 }

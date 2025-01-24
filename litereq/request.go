@@ -33,7 +33,7 @@ type Builder struct {
 // 后面还要增加 tls 指纹的处理
 
 func Build(ctx ...context.Context) *Builder {
-	build := &Builder{
+	return &Builder{
 		ub: urlBuilder{},
 		rb: requestBuilder{
 			retry: 1, // setDefault 1
@@ -41,7 +41,6 @@ func Build(ctx ...context.Context) *Builder {
 		h1:  false,
 		ctx: If(Or(ctx...) == nil, context.Background(), Or(ctx...)),
 	}
-	return build
 }
 
 func joinErrs(a, b error) error {
@@ -250,9 +249,19 @@ func (b *Builder) bodyWriter(f func(w io.Writer) error) *Builder {
 	return b.Body(BodyWriter(f))
 }
 
+// 用于请求了之后 清理掉内存里面存的东西 目前单进程没问题 并发还不确定有没有问题 后面看看
+func (b *Builder) emptyQueryFields() {
+	// 清理配置了的 param
+	b.ub.emptyParam()
+	// 清理配置了的 body
+	b.rb.emptyBody()
+	// header和cookie之类的全局共享 不清理
+}
+
 // -----核心入口
 
 func (b *Builder) fetch(sourceUrl string) *Response {
+	defer b.emptyQueryFields()
 	u := utils.ParseUrl(sourceUrl)
 	b.ub.BaseURL(sourceUrl)
 	b.ub.Scheme(u.Scheme)

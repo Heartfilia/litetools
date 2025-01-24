@@ -1,14 +1,18 @@
 package litereq
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 	"net/http/cookiejar"
+	"strings"
 
 	"golang.org/x/net/publicsuffix"
 )
 
 type Cookies struct {
-	jar http.CookieJar
+	jar []*http.Cookie
+	ctx context.Context
 }
 
 // NewCookieJar returns a cookie jar using the standard public suffix list.
@@ -22,6 +26,13 @@ func NewCookieJar() http.CookieJar {
 }
 
 func (c *Cookies) String() string {
+	rawCk := make([]string, 0)
+	for _, ck := range c.jar {
+		rawCk = append(rawCk, fmt.Sprintf("%s=%s", ck.Name, ck.Value))
+	}
+	return strings.Join(rawCk, ";")
+}
 
-	return ""
+func (c *Cookies) Jar() []*http.Cookie {
+	return c.jar
 }

@@ -92,12 +92,12 @@ func do(cl *http.Client, req *http.Request, validators []ResponseHandler, h Resp
 	}
 
 	err = switchContentEncoding(res)
-	resp.Status = res.StatusCode
 	resp.detail(res.Body)
-	resp.header(res.Header)
 	resp.cookie(res.Cookies())
-	resp.Proto = res.Proto
 	resp.error(err)
+	resp.Status = res.StatusCode
+	resp.Header = res.Header
+	resp.Proto = res.Proto
 
 	if err = h(res); err != nil {
 		resp.error(err)
@@ -160,4 +160,8 @@ func (rb *requestBuilder) Request(ctx context.Context, u *url.URL) (req *http.Re
 		})
 	}
 	return req, nil
+}
+
+func (rb *requestBuilder) emptyBody() {
+	rb.getBody = nil
 }

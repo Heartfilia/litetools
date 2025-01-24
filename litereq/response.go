@@ -10,7 +10,7 @@ import (
 type Response struct {
 	Status        int
 	Proto         string
-	Header        map[string]string // 先占位
+	Header        http.Header
 	cb            *Cookies
 	Body          io.ReadCloser
 	Content       []byte
@@ -29,15 +29,11 @@ func (r *Response) Error() error {
 }
 
 func (r *Response) cookie(c []*http.Cookie) {
-
+	r.cb = &Cookies{jar: c}
 }
 
 func (r *Response) Cookie() *Cookies {
 	return r.cb
-}
-
-func (r *Response) header(h http.Header) {
-
 }
 
 func (r *Response) detail(rc io.ReadCloser) {
