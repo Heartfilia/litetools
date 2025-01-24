@@ -34,6 +34,7 @@ type kvPair struct {
 type requestBuilder struct {
 	headers []multimap
 	cookies []kvPair
+	tls     any // 先放着 后面需要搞指纹
 	getBody BodyGetter
 	retry   int
 	method  string

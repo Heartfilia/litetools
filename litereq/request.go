@@ -28,6 +28,8 @@ type Builder struct {
 	timeout    time.Duration
 }
 
+// 后面还要增加 tls 指纹的处理
+
 func Build(ctx ...context.Context) *Builder {
 	build := &Builder{
 		ub: urlBuilder{},
@@ -70,50 +72,6 @@ func (b *Builder) Params(paramString string) *Builder {
 		b.ub.Param(ps[0], ps[1])
 	}
 	return b
-}
-
-func (b *Builder) Path(p string) *Builder {
-	b.ub.Path(p)
-	return b
-}
-
-func (b *Builder) BodyMd5() []byte {
-	if b.rb.getBody == nil {
-		return nil
-	}
-	bd, err := b.rb.getBody()
-	if err != nil {
-		return nil
-	}
-	bt, err := io.ReadAll(bd)
-	defer func(bd io.ReadCloser) {
-		err := bd.Close()
-		if err != nil {
-
-		}
-	}(bd)
-	if err != nil {
-		return nil
-	}
-	return utils.GetMd5(bt)
-}
-
-func (b *Builder) BodyString() string {
-	if b.rb.getBody == nil {
-		return ""
-	}
-	bd, err := b.rb.getBody()
-	if err != nil {
-		return ""
-	}
-	bt, err := io.ReadAll(bd)
-	defer func(bd io.ReadCloser) {
-		err := bd.Close()
-		if err != nil {
-
-		}
-	}(bd)
-	return string(bt)
 }
 
 func (b *Builder) request(ctx context.Context) (req *http.Request, err error) {

@@ -112,6 +112,7 @@ func encode(v url.Values) string {
 	}
 	return buf.String()
 }
+
 func queryEscape(v string) string {
 	v = url.QueryEscape(v)
 	//v = strings.ReplaceAll(v, "%2C", ",")

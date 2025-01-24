@@ -40,7 +40,6 @@ func (r *Response) header(h http.Header) {
 }
 
 func (r *Response) detail(rc io.ReadCloser) {
-	//buffer := make([])
 	bodyBytes, err := io.ReadAll(rc)
 	if err != nil {
 		log.Println(err)
