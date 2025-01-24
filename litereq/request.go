@@ -2,9 +2,12 @@ package litereq
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"github.com/Heartfilia/litetools/litereq/utils"
+	"github.com/Heartfilia/litetools/litestr"
 	"io"
+	"log"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -18,23 +21,21 @@ type Builder struct {
 	rb         requestBuilder
 	ub         urlBuilder
 	proxy      ProxyGetter
+	ctx        context.Context
 	validators []ResponseHandler
 	handler    ResponseHandler
 	cookieJar  *cookiejar.Jar
 	timeout    time.Duration
 }
 
-func Build(urlPath string) *Builder {
-	u := utils.ParseUrl(urlPath)
+func Build(ctx ...context.Context) *Builder {
 	build := &Builder{
 		ub: urlBuilder{},
 		rb: requestBuilder{
 			retry: 1, // setDefault 1
 		},
+		ctx: If(Or(ctx...) == nil, context.Background(), Or(ctx...)),
 	}
-	build.ub.BaseURL(urlPath)
-	build.ub.Scheme(u.Scheme)
-	build.ub.Host(u.Host)
 	return build
 }
 
@@ -46,12 +47,29 @@ func joinErrs(a, b error) error {
 // If a valid url.URL cannot be built,
 // URL() nevertheless returns a new url.URL,
 // so it is always safe to call u.String().
-func (b *Builder) URL() (u *url.URL, err error) {
+func (b *Builder) url() (u *url.URL, err error) {
 	u, err = b.ub.URL()
 	if err != nil {
 		return u, joinErrs(ErrURL, err)
 	}
 	return u, nil
+}
+
+func (b *Builder) Param(key string, values ...string) *Builder {
+	if len(values) == 0 {
+		b.ub.Param(key, "")
+	} else {
+		b.ub.Param(key, values...)
+	}
+	return b
+}
+
+func (b *Builder) Params(paramString string) *Builder {
+	params := litestr.ParamStringToArray(paramString)
+	for _, ps := range params {
+		b.ub.Param(ps[0], ps[1])
+	}
+	return b
 }
 
 func (b *Builder) Path(p string) *Builder {
@@ -99,7 +117,7 @@ func (b *Builder) BodyString() string {
 }
 
 func (b *Builder) request(ctx context.Context) (req *http.Request, err error) {
-	u, err := b.URL()
+	u, err := b.url()
 	if err != nil {
 		return nil, err
 	}
@@ -166,8 +184,22 @@ func (b *Builder) Header(key string, values ...string) *Builder {
 	return b
 }
 
+func (b *Builder) Headers(headerMap map[string]string) *Builder {
+	for k, v := range headerMap {
+		b.rb.Header(k, v)
+	}
+	return b
+}
+
+// Cookie Single cookie value set
 func (b *Builder) Cookie(name, value string) *Builder {
 	b.rb.Cookie(name, value)
+	return b
+}
+
+// Cookies Use string cookies
+func (b *Builder) Cookies(s string) *Builder {
+	b.rb.Header("Cookie", s)
 	return b
 }
 
@@ -177,6 +209,19 @@ func (b *Builder) CookieJar(jar *cookiejar.Jar) *Builder {
 	return b
 }
 
+// BasicAuth sets the Authorization header to a basic auth credential.
+func (b *Builder) BasicAuth(username, password string) *Builder {
+	auth := username + ":" + password
+	v := base64.StdEncoding.EncodeToString([]byte(auth))
+	return b.Header("Authorization", "Basic "+v)
+}
+
+// Bearer sets the Authorization header to a bearer token.
+func (b *Builder) Bearer(token string) *Builder {
+	return b.Header("Authorization", "Bearer "+token)
+}
+
+// Body 预留给用框架自带的自定义方案格式的
 func (b *Builder) Body(src BodyGetter) *Builder {
 	b.rb.Body(src)
 	return b
@@ -185,6 +230,30 @@ func (b *Builder) Body(src BodyGetter) *Builder {
 func (b *Builder) BodyWriter(f func(w io.Writer) error) *Builder {
 	b.rb.Body(BodyWriter(f))
 	return b
+}
+
+func (b *Builder) Json(v any) *Builder {
+	return b.Body(BodyJSON(v)).ContentType("application/json")
+}
+
+func (b *Builder) Data(v any) *Builder {
+	switch v.(type) {
+	case io.Reader:
+		b.Body(BodyReader(v.(io.Reader)))
+	case func(w io.Writer) error:
+		b.BodyWriter(v.(func(w io.Writer) error))
+	case []byte:
+		b.Body(BodyBytes(v.([]byte)))
+	case url.Values:
+		b.Body(BodyForm(v.(url.Values))).ContentType("application/x-www-form-urlencoded")
+	default:
+		log.Panicln("wrong body type:", v)
+	}
+	return b
+}
+
+func (b *Builder) File(fp string) *Builder {
+	return b.Body(BodyFile(fp))
 }
 
 func (b *Builder) ContentType(ct string) *Builder {
@@ -197,16 +266,31 @@ func (b *Builder) UserAgent(ua string) *Builder {
 	return b
 }
 
+func (b *Builder) Referer(rf string) *Builder {
+	b.rb.Header("Referer", rf)
+	return b
+}
+
 func (b *Builder) Retry(r int) *Builder {
 	b.rb.Retry(r)
 	return b
 }
 
-// ---------------------------------------------
+func (b *Builder) Timeout(d time.Duration) *Builder {
+	b.timeout = d
+	return b
+}
 
-func (b *Builder) Fetch(ctx ...context.Context) *Response {
+// -----核心入口
+
+func (b *Builder) fetch(sourceUrl string) *Response {
+	u := utils.ParseUrl(sourceUrl)
+	b.ub.BaseURL(sourceUrl)
+	b.ub.Scheme(u.Scheme)
+	b.ub.Host(u.Host)
+
 	resp := &Response{}
-	req, err := b.request(If(Or(ctx...) == nil, context.Background(), Or(ctx...)))
+	req, err := b.request(b.ctx)
 	if err != nil {
 		resp.error(err)
 		return resp
@@ -214,4 +298,41 @@ func (b *Builder) Fetch(ctx ...context.Context) *Response {
 	err = b.do(req, resp)
 	resp.error(err)
 	return resp
+}
+
+// ---------------------------------------------
+
+func (b *Builder) Head(sourceUrl string) *Response {
+	b.rb.Method(http.MethodHead)
+	return b.fetch(sourceUrl)
+}
+
+func (b *Builder) Get(sourceUrl string) *Response {
+	b.rb.Method(http.MethodGet)
+	return b.fetch(sourceUrl)
+}
+
+func (b *Builder) Post(sourceUrl string) *Response {
+	b.rb.Method(http.MethodPost)
+	return b.fetch(sourceUrl)
+}
+
+func (b *Builder) Put(sourceUrl string) *Response {
+	b.rb.Method(http.MethodPut)
+	return b.fetch(sourceUrl)
+}
+
+func (b *Builder) Patch(sourceUrl string) *Response {
+	b.rb.Method(http.MethodPatch)
+	return b.fetch(sourceUrl)
+}
+
+func (b *Builder) Options(sourceUrl string) *Response {
+	b.rb.Method(http.MethodOptions)
+	return b.fetch(sourceUrl)
+}
+
+func (b *Builder) Delete(sourceUrl string) *Response {
+	b.rb.Method(http.MethodDelete)
+	return b.fetch(sourceUrl)
 }

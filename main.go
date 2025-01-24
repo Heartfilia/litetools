@@ -68,10 +68,14 @@ func testStr() {
 	//fmt.Println(litestr.ColorString("整体替换颜色", "黄"))
 	//log.Println(litestr.S(), "测试S的状态")
 
-	res := litestr.CookieStringToMap("x-auth-token=9e712b07dc404fe7b384e7f3dce7bbba; x-auth-app=Demo; x-auth-brand=; client_version=5.2.2.123; client_build_version=95228; client_flags=tabs")
+	//res := litestr.CookieStringToMap("x-auth-token=9e712b07dc404fe7b384e7f3dce7bbba; x-auth-app=Demo; x-auth-brand=; client_version=5.2.2.123; client_build_version=95228; client_flags=tabs; ")
+	//fmt.Println(res)
+	//newRes := litestr.CookieMapToString(res)
+	//fmt.Println(newRes)
+
+	//res := litestr.ParamStringToMap("a=1&b=sdfsdfsd&c=&d=jjjj")
+	res := litestr.ParamStringToArray("a=1&b=sdfsdfsd&c=&d=jjjj&e=")
 	fmt.Println(res)
-	newRes := litestr.CookieMapToString(res)
-	fmt.Println(newRes)
 }
 
 func testTag() {
@@ -81,15 +85,22 @@ func testTag() {
 }
 
 func testReq() {
-	defer litetime.Timer()()
-	rq := litereq.Build("http://httpbin.org/get").
-		Header("referer", "https://www.baidu.com").
-		Header("UAX", "hhh").
-		Cookie("aaa", "1111").
-		Cookie("bbbb", "22222").
+	rq := litereq.Build().
+		//Cookie("aaa", "1111").
+		//Cookie("bbbb", "22222").
+		//Cookies("aa=1; bbb=;ccc=2").
 		//Proxy("http://127.0.0.1:7890").
-		UserAgent("lite-tools/v1").
-		Fetch()
+		//Header("referer", "https://www.baidu.com").
+		//Header("UAX", "hhh").
+		//UserAgent("lite-tools/v1").
+		//Headers(map[string]string{"referer": "https://www.baidu.com", "xxx": "123"}).
+		//Param("a", "1").
+		//Param("b", "2").
+		//Param("c").
+		//Param("d", "3").
+		//Params("a=1&b=&c=2").
+		//Get("http://httpbin.org/get")
+		Post("http://httpbin.org/post")
 	if rq.Error() != nil {
 		fmt.Println(rq.Error())
 	} else {
