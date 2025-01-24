@@ -27,6 +27,7 @@ type Builder struct {
 	handler    ResponseHandler
 	cookieJar  *cookiejar.Jar
 	timeout    time.Duration
+	verbose    bool
 	//tls        TlsGetter
 }
 
@@ -59,6 +60,18 @@ func (b *Builder) url() (u *url.URL, err error) {
 	return u, nil
 }
 
+func (b *Builder) log(funT string, err error) {
+	if b.verbose {
+		fmt.Println(litestr.ColorString(funT, "red"), err)
+	}
+}
+
+// Verbose 用于打印出详细流程日志的
+func (b *Builder) Verbose(vb bool) *Builder {
+	b.verbose = vb
+	return b
+}
+
 // H1 默认就是用h2 所以这里是强制改成h1的
 func (b *Builder) H1(enable bool) *Builder {
 	b.h1 = enable
@@ -85,10 +98,12 @@ func (b *Builder) Params(paramString string) *Builder {
 func (b *Builder) request(ctx context.Context) (req *http.Request, err error) {
 	u, err := b.url()
 	if err != nil {
+		b.log("request", err)
 		return nil, err
 	}
 	req, err = b.rb.Request(ctx, u)
 	if err != nil {
+		b.log("request", err)
 		return nil, joinErrs(ErrRequest, err)
 	}
 	return req, nil
@@ -128,6 +143,7 @@ func (b *Builder) do(req *http.Request, resp *Response) (err error) {
 	case doHandle:
 		err = joinErrs(ErrHandler, err)
 	}
+	b.log("do", err)
 	return err
 }
 
