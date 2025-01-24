@@ -2,6 +2,8 @@ package litereq
 
 import (
 	"bytes"
+	"fmt"
+	"github.com/Heartfilia/litetools/litestr"
 	"io"
 	"net/url"
 	"os"
@@ -79,4 +81,25 @@ func BodyFile(name string) BodyGetter {
 	return func() (r io.ReadCloser, err error) {
 		return os.Open(name)
 	}
+}
+
+// bodyData 把传入的string/map格式的东西转成对应的form的getter
+func bodyData(v any) BodyGetter {
+	d := url.Values{}
+	switch v.(type) {
+	case string:
+		pd := litestr.ParamStringToMap(v.(string))
+		for kn, kv := range pd {
+			d.Set(kn, kv)
+		}
+	case map[string]string:
+		for kn, kv := range v.(map[string]string) {
+			d.Set(kn, kv)
+		}
+	case map[string]any:
+		for kn, kv := range v.(map[string]any) {
+			d.Set(kn, fmt.Sprintf("%v", kv))
+		}
+	}
+	return BodyForm(d)
 }

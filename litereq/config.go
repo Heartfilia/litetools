@@ -16,10 +16,9 @@ type Config = func(rb *Builder)
 // It also sets the appropriate Content-Encoding header and automatically
 // closes and the stream when the callback returns.
 func GzipConfig(level int, h func(gw *gzip.Writer) error) Config {
-	return func(rb *Builder) {
-		rb.
-			Header("Content-Encoding", "gzip").
-			BodyWriter(func(w io.Writer) error {
+	return func(b *Builder) {
+		b.Header("Content-Encoding", "gzip").
+			bodyWriter(func(w io.Writer) error {
 				gw, err := gzip.NewWriterLevel(w, level)
 				if err != nil {
 					return err

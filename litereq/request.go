@@ -185,11 +185,6 @@ func (b *Builder) Body(src BodyGetter) *Builder {
 	return b
 }
 
-func (b *Builder) BodyWriter(f func(w io.Writer) error) *Builder {
-	b.rb.Body(BodyWriter(f))
-	return b
-}
-
 func (b *Builder) Json(v any) *Builder {
 	return b.Body(BodyJSON(v)).ContentType("application/json")
 }
@@ -199,11 +194,13 @@ func (b *Builder) Data(v any) *Builder {
 	case io.Reader:
 		b.Body(BodyReader(v.(io.Reader)))
 	case func(w io.Writer) error:
-		b.BodyWriter(v.(func(w io.Writer) error))
+		b.Body(BodyWriter(v.(func(w io.Writer) error)))
 	case []byte:
 		b.Body(BodyBytes(v.([]byte)))
 	case url.Values:
 		b.Body(BodyForm(v.(url.Values))).ContentType("application/x-www-form-urlencoded")
+	case string, map[string]any, map[string]string:
+		b.Body(bodyData(v)).ContentType("application/x-www-form-urlencoded")
 	default:
 		log.Panicln("wrong body type:", v)
 	}
@@ -237,6 +234,13 @@ func (b *Builder) Retry(r int) *Builder {
 func (b *Builder) Timeout(d time.Duration) *Builder {
 	b.timeout = d
 	return b
+}
+
+// extra
+
+// BodyWriter pipes writes from w to the Builder's request body.
+func (b *Builder) bodyWriter(f func(w io.Writer) error) *Builder {
+	return b.Body(BodyWriter(f))
 }
 
 // -----核心入口

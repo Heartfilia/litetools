@@ -88,24 +88,30 @@ func testReq() {
 	rq := litereq.Build().
 		//Cookie("aaa", "1111").
 		//Cookie("bbbb", "22222").
-		//Cookies("aa=1; bbb=;ccc=2").
+		Cookies("aa=1; bbb=;ccc=2").
 		//Proxy("http://127.0.0.1:7890").
 		//Header("referer", "https://www.baidu.com").
 		//Header("UAX", "hhh").
 		//UserAgent("lite-tools/v1").
-		//Headers(map[string]string{"referer": "https://www.baidu.com", "xxx": "123"}).
-		//Param("a", "1").
-		//Param("b", "2").
-		//Param("c").
-		//Param("d", "3").
-		//Params("a=1&b=&c=2").
-		//Get("http://httpbin.org/get")
-		Post("http://httpbin.org/post")
-	if rq.Error() != nil {
-		fmt.Println(rq.Error())
-	} else {
-		fmt.Println(rq)
-	}
+		Headers(map[string]string{"referer": "https://www.baidu.com", "xxx": "123"})
+	//Param("a", "1").
+	//Param("b", "2").
+	//Param("c").
+	//Param("d", "3").
+	//Params("a=1&b=&c=2").
+
+	//res := rq.Get("http://httpbin.org/get")
+	//fmt.Println(res.Text)
+
+	resp := rq.Data("a=1&b=2&c=3").Post("http://httpbin.org/post")
+	fmt.Println(resp.Text)
+	//Get("http://httpbin.org/get")
+	//Post("http://httpbin.org/post")
+	//if rq.Error() != nil {
+	//	fmt.Println(rq.Error())
+	//} else {
+	//	fmt.Println(rq)
+	//}
 }
 
 func reqTest() {
