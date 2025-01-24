@@ -17,10 +17,12 @@ import (
 // 借鉴 https://github.com/earthboundkid/requests
 
 type Builder struct {
-	hc         *http.Client
-	rb         requestBuilder
-	ub         urlBuilder
-	proxy      ProxyGetter
+	hc    *http.Client
+	rb    requestBuilder
+	ub    urlBuilder
+	proxy ProxyGetter
+	//tls        TlsGetter
+	h2         bool
 	ctx        context.Context
 	validators []ResponseHandler
 	handler    ResponseHandler
@@ -57,6 +59,11 @@ func (b *Builder) url() (u *url.URL, err error) {
 	return u, nil
 }
 
+func (b *Builder) H2(enable bool) *Builder {
+	b.h2 = enable
+	return b
+}
+
 func (b *Builder) Param(key string, values ...string) *Builder {
 	if len(values) == 0 {
 		b.ub.Param(key, "")
@@ -88,7 +95,7 @@ func (b *Builder) request(ctx context.Context) (req *http.Request, err error) {
 
 func (b *Builder) do(req *http.Request, resp *Response) (err error) {
 	cl := Or(b.hc, &http.Client{
-		Transport: createTransport(b.proxy),
+		Transport: createTransport(b.proxy, b.h2),
 		Timeout:   Or(b.timeout, DefaultTimeout),
 	})
 	if b.cookieJar != nil {
@@ -235,8 +242,6 @@ func (b *Builder) Timeout(d time.Duration) *Builder {
 	b.timeout = d
 	return b
 }
-
-// extra
 
 // BodyWriter pipes writes from w to the Builder's request body.
 func (b *Builder) bodyWriter(f func(w io.Writer) error) *Builder {

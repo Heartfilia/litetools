@@ -30,13 +30,13 @@ var (
 	tLock            sync.RWMutex
 	transports       = make(map[string]*http.Transport)
 	defaultTransport = &http.Transport{
-		Proxy:             http.ProxyFromEnvironment,
-		ForceAttemptHTTP2: true,
-		//MaxIdleConns:          100,
+		Proxy:                 http.ProxyFromEnvironment,
+		ForceAttemptHTTP2:     true,
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 10 * time.Second,
 		MaxIdleConnsPerHost:   300,
+		TLSClientConfig:       nil,
 	}
 )
 
@@ -50,7 +50,7 @@ func ReplayString(rawResponse string) Transport {
 	})
 }
 
-// UserAgentTransport returns a wrapped http.RoundTripper that sets the User-Agent header on flurl to s.
+// UserAgentTransport returns a wrapped http.RoundTripper that sets the User-Agent header.
 func UserAgentTransport(rt http.RoundTripper, s string) Transport {
 	if rt == nil {
 		rt = http.DefaultTransport
@@ -63,7 +63,7 @@ func UserAgentTransport(rt http.RoundTripper, s string) Transport {
 	})
 }
 
-// PermitURLTransport returns a wrapped http.RoundTripper that rejects any flurl whose URL doesn't match the provided regular expression string.
+// PermitURLTransport returns a wrapped http.RoundTripper that rejects any url whose URL doesn't match the provided regular expression string.
 //
 // PermitURLTransport will panic if the regexp does not compile.
 func PermitURLTransport(rt http.RoundTripper, regex string) Transport {
@@ -142,7 +142,8 @@ func getTransport(url string) *http.Transport {
 	}
 	return nil
 }
-func createTransport(getter ProxyGetter) *http.Transport {
+
+func createTransport(getter ProxyGetter, h2 bool) *http.Transport {
 	if getter == nil {
 		return defaultTransport
 	}
@@ -161,13 +162,13 @@ func createTransport(getter ProxyGetter) *http.Transport {
 	tLock.Lock()
 	defer tLock.Unlock()
 	t = &http.Transport{
-		Proxy:             http.ProxyURL(url),
-		ForceAttemptHTTP2: true,
-		//MaxIdleConns:          0,
+		Proxy:                 http.ProxyURL(url),
+		ForceAttemptHTTP2:     h2,
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 5 * time.Second,
 		MaxIdleConnsPerHost:   1000,
+		TLSClientConfig:       nil,
 	}
 	transports[proxy.String()] = t
 	time.AfterFunc(proxy.Expired(), func() {

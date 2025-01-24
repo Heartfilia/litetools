@@ -71,31 +71,36 @@ func (rb *requestBuilder) Retry(r int) {
 func do(cl *http.Client, req *http.Request, validators []ResponseHandler, h ResponseHandler, resp *Response) (doResponse, error) {
 	res, err := cl.Do(req)
 	if err != nil {
+		resp.error(err)
 		return doConnect, err
 	}
 	defer func(Body io.ReadCloser) {
 		err = Body.Close()
 		if err != nil {
+			resp.error(err)
 		}
 	}(res.Body)
-
-	resp.Status = res.StatusCode
-	resp.detail(res.Body)
-	resp.header(res.Header)
-	resp.cookie(res.Cookies())
 
 	for _, v := range validators {
 		if v == nil {
 			continue
 		}
 		if err = v(res); err != nil {
+			resp.error(err)
 			return doValidate, err
 		}
 	}
 
 	err = switchContentEncoding(res)
+	resp.Status = res.StatusCode
+	resp.detail(res.Body)
+	resp.header(res.Header)
+	resp.cookie(res.Cookies())
+	resp.Proto = res.Proto
+	resp.error(err)
 
 	if err = h(res); err != nil {
+		resp.error(err)
 		return doHandle, err
 	}
 

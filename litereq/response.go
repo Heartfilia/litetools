@@ -9,6 +9,7 @@ import (
 
 type Response struct {
 	Status        int
+	Proto         string
 	Header        map[string]string // 先占位
 	cb            *Cookies
 	Body          io.ReadCloser
