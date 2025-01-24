@@ -101,6 +101,10 @@ func testReq() {
 
 	res := rq.Get("https://www.baidu.com")
 	fmt.Println(res.Header)
+	resp2 := rq.Post("http://httpbin.org/post")
+	fmt.Println(resp2.Text)
+	fmt.Println(res.Cookie().String())
+	fmt.Println(resp2.Error())
 }
 
 func reqTest() {

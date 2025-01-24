@@ -179,59 +179,38 @@ session
 import (
 	"fmt"
     "github.com/Heartfilia/litetools/litereq"      // 核心请求包
-	"github.com/Heartfilia/litetools/litereq/reqoptions"  // 参数配置包
 )
 
-// 下面不同案例的参数配置是一样的
-// SetCookies: 支持map[string]string  / string: key=value  // *net.Cookie
-// SetHeaders: 支持map[string]string  / net.Header
-//
-// SetParams : 支持 key=value&key=value / [][2]any{{key, value}} / [][2]string{{key, value}} / netURL.Values / map[string]any / map[string]string
 /*
 推荐写法
 */
 func req(){
-    session := litereq.NewSession().
-        SetVerbose(true).
-        SetHTTP2(true).     // 还没实现
-        SetTimeout(2000).   // 全局超时，option有配置以option为主
-        SetRetry(2).
-        SetCookies(map[string]string{"a": "1"}).                       // 全局cookies  后面单独的参数配置的cookie会融合到这里面一起请求
-        SetHeaders(map[string]string{"user-agent": "lite-tools V2"}).  // 全局headers  兼容map格式和headers对象
-        SetProxy("http://user:pass@ip:port")         // 全局代理 如果option那边传入 按那边为主 
+	// 借鉴了优秀的项目 https://github.com/earthboundkid/requests
+	// 改进了我之前的请求包 大体使用方法一致  还有未实现的功能：tls 指纹，后续更新
+	// 下面是可以复用session的写法
+    rq := litereq.Build().
+    //Cookie("aaa", "1111").
+    //Cookie("bbbb", "22222").
+    //Cookies("aa=1; bbb=;ccc=2").
+    //Proxy("http://127.0.0.1:7890").
+    //Header("referer", "https://www.baidu.com").
+    //Header("UAX", "hhh").
+    //UserAgent("lite-tools/v1").
+    //H1(true).
+    
+    Headers(map[string]string{"referer": "https://www.baidu.com", "xxx": "123", "user-agent": "lite-rq"})
+    //Param("d", "3").
+    //Params("a=1&b=&c=2").
+    
+    res := rq.Get("https://www.baidu.com")
+    fmt.Println(res.Header)
+    resp2 := rq.Post("http://httpbin.org/post")
+    fmt.Println(resp2.Text)
+    fmt.Println(res.Cookie().String())
 	
-	option := opt.NewOption().
-        SetMethod("GET").   
-        SetVerify(false).   // 还没实现
-        SetRedirects(true). // 还没实现
-        //SetHeaders(map[string]string{"user-agent": "from option"}).
-        //SetCookies(map[string]string{"b": "", "d": "666"}). // cookie兼容 字符串格式和map格式 也兼容cookie对象
-        //SetParams([][2]any{{"k", 1}, {"v", "2"}}).
-        SetCookieEnable(false). // 设置本次请求不使用cookie
-        //SetProxy("http://ip:port").
-        SetTimeout(3000)
-	
-	response := session.Fetch("http://httpbin.org/get", option)  // 如果需要配置那么就传入option对象
-	//response := session.Fetch("http://httpbin.org/get", nil)  // 如果不需要配置 直接传入 nil
-	
-	// 获取结果
-	fmt.Println(response.Error())
-	fmt.Println(response.Text)
-	fmt.Println(response.StatusCode)
-	fmt.Println(response.Headers)
-	fmt.Println(response.Body)
-	fmt.Println(response.ContentLength)
-	
-	fmt.Println(response.Cookies)  // 这个cookies是opt对象 所以有下面的二次操作
-	
-	// 需要 key=value; 格式的cookie
-    fmt.Println(response.Cookies.String())
-    // 需要 {"key":"value"} 的JSON格式的cookie
-    fmt.Println(response.Cookies.Json())
-    // 需要 {"key":"value"} 的map[string]string 格式的cookie
-    fmt.Println(response.Cookies.Map())
-	// 需要 []*net.Cookie 格式的的cookie
-    fmt.Println(response.Cookies.Cookies())
+	// 直接临时用或者只用一次的情况
+	res3 := litereq.Build().Get("http://httpbin.org/get")
+	fmt.Println(res3.Error())
 }
 ```
 
