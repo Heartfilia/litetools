@@ -17,17 +17,17 @@ import (
 // 借鉴 https://github.com/earthboundkid/requests
 
 type Builder struct {
-	hc    *http.Client
-	rb    requestBuilder
-	ub    urlBuilder
-	proxy ProxyGetter
-	//tls        TlsGetter
-	h2         bool
+	hc         *http.Client
+	rb         requestBuilder
+	ub         urlBuilder
+	proxy      ProxyGetter
+	h1         bool // 默认用h2
 	ctx        context.Context
 	validators []ResponseHandler
 	handler    ResponseHandler
 	cookieJar  *cookiejar.Jar
 	timeout    time.Duration
+	//tls        TlsGetter
 }
 
 // 后面还要增加 tls 指纹的处理
@@ -38,6 +38,7 @@ func Build(ctx ...context.Context) *Builder {
 		rb: requestBuilder{
 			retry: 1, // setDefault 1
 		},
+		h1:  false,
 		ctx: If(Or(ctx...) == nil, context.Background(), Or(ctx...)),
 	}
 	return build
@@ -59,8 +60,9 @@ func (b *Builder) url() (u *url.URL, err error) {
 	return u, nil
 }
 
-func (b *Builder) H2(enable bool) *Builder {
-	b.h2 = enable
+// H1 默认就是用h2 所以这里是强制改成h1的
+func (b *Builder) H1(enable bool) *Builder {
+	b.h1 = enable
 	return b
 }
 
@@ -95,7 +97,7 @@ func (b *Builder) request(ctx context.Context) (req *http.Request, err error) {
 
 func (b *Builder) do(req *http.Request, resp *Response) (err error) {
 	cl := Or(b.hc, &http.Client{
-		Transport: createTransport(b.proxy, b.h2),
+		Transport: createTransport(b.proxy, b.h1),
 		Timeout:   Or(b.timeout, DefaultTimeout),
 	})
 	if b.cookieJar != nil {

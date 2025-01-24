@@ -143,7 +143,7 @@ func getTransport(url string) *http.Transport {
 	return nil
 }
 
-func createTransport(getter ProxyGetter, h2 bool) *http.Transport {
+func createTransport(getter ProxyGetter, h1 bool) *http.Transport {
 	if getter == nil {
 		return defaultTransport
 	}
@@ -163,7 +163,7 @@ func createTransport(getter ProxyGetter, h2 bool) *http.Transport {
 	defer tLock.Unlock()
 	t = &http.Transport{
 		Proxy:                 http.ProxyURL(url),
-		ForceAttemptHTTP2:     h2,
+		ForceAttemptHTTP2:     !h1, // 默认用h2
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 5 * time.Second,

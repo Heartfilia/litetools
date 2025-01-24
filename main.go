@@ -93,7 +93,7 @@ func testReq() {
 		//Header("referer", "https://www.baidu.com").
 		//Header("UAX", "hhh").
 		//UserAgent("lite-tools/v1").
-		H2(true).
+		//H1(true).
 		Headers(map[string]string{"referer": "https://www.baidu.com", "xxx": "123"})
 	//Param("a", "1").
 	//Param("b", "2").
