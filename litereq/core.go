@@ -65,7 +65,9 @@ func (rb *requestBuilder) Clone() *requestBuilder {
 }
 
 func (rb *requestBuilder) Retry(r int) {
-	rb.retry = r
+	if r > 1 {
+		rb.retry = r
+	}
 }
 
 func do(cl *http.Client, req *http.Request, validators []ResponseHandler, h ResponseHandler, resp *Response) (doResponse, error) {
