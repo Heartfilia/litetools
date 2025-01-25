@@ -334,3 +334,13 @@ func (b *Builder) Delete(sourceUrl string) *Response {
 	b.rb.Method(http.MethodDelete)
 	return b.fetch(sourceUrl)
 }
+
+func (b *Builder) Trace(sourceUrl string) *Response {
+	b.rb.Method(http.MethodTrace)
+	return b.fetch(sourceUrl)
+}
+
+func (b *Builder) Connect(sourceUrl string) *Response {
+	b.rb.Method(http.MethodConnect)
+	return b.fetch(sourceUrl)
+}
