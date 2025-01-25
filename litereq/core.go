@@ -48,6 +48,17 @@ func (rb *requestBuilder) Cookie(name, value string) {
 	rb.cookies = append(rb.cookies, kvPair{name, value})
 }
 
+func (rb *requestBuilder) GetCookies() *Cookies {
+	var cookies []*http.Cookie
+	for _, kv := range rb.cookies {
+		cookies = append(cookies, &http.Cookie{
+			Name:  kv.key,
+			Value: kv.value,
+		})
+	}
+	return &Cookies{jar: cookies}
+}
+
 func (rb *requestBuilder) Method(method string) {
 	rb.method = method
 }
@@ -144,7 +155,7 @@ func (rb *requestBuilder) Request(ctx context.Context, u *url.URL) (req *http.Re
 		}
 	}
 	method := Or(rb.method,
-		If(rb.getBody == nil, http.MethodGet, http.MethodPost))
+		If(rb.getBody == nil, "GET", "POST"))
 
 	req, err = http.NewRequestWithContext(ctx, method, u.String(), body)
 	if err != nil {

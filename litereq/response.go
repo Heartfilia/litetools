@@ -48,8 +48,9 @@ func (r *Response) detail(rc io.ReadCloser) {
 	r.Text = string(bodyBytes)
 }
 
+// Json param v must be pointer
 func (r *Response) Json(v any) error {
-	err := json.Unmarshal(r.Content, &v)
+	err := json.Unmarshal(r.Content, v)
 	if err != nil {
 		return err
 	}

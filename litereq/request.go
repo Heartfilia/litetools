@@ -274,6 +274,10 @@ func (b *Builder) emptyQueryFields() {
 	// header和cookie之类的全局共享 不清理
 }
 
+func (b *Builder) GetCookies() *Cookies {
+	return b.rb.GetCookies()
+}
+
 // -----核心入口
 
 func (b *Builder) fetch(sourceUrl string) *Response {
