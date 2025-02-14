@@ -95,6 +95,13 @@ func (b *Builder) Params(paramString string) *Builder {
 	return b
 }
 
+// Handle sets the response handler for a Builder.
+// To use multiple handlers, use ChainHandlers.
+func (b *Builder) Handle(h ResponseHandler) *Builder {
+	b.handler = h
+	return b
+}
+
 func (b *Builder) request(ctx context.Context) (req *http.Request, err error) {
 	u, err := b.url()
 	if err != nil {
