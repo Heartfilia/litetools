@@ -85,26 +85,26 @@ func testTag() {
 }
 
 func testReq() {
-	rq := litereq.Build().
-		//Cookie("aaa", "1111").
-		//Cookie("bbbb", "22222").
-		//Cookies("aa=1; bbb=;ccc=2").
-		//Proxy("http://127.0.0.1:7890").
-		//Header("referer", "https://www.baidu.com").
-		//Header("UAX", "hhh").
-		//UserAgent("lite-tools/v1").
-		//H1(true).
+	//rq := litereq.Build().
+	//Cookie("aaa", "1111").
+	//Cookie("bbbb", "22222").
+	//Cookies("aa=1; bbb=;ccc=2").
+	//Proxy("http://127.0.0.1:7890").
+	//Header("referer", "https://www.baidu.com").
+	//Header("UAX", "hhh").
+	//UserAgent("lite-tools/v1").
+	//H1(true).
 
-		Headers(map[string]string{"referer": "https://www.baidu.com", "xxx": "123", "user-agent": "lite-rq"})
+	//Headers(map[string]string{"referer": "https://www.baidu.com", "xxx": "123", "user-agent": "lite-rq"})
 	//Param("d", "3").
 	//Params("a=1&b=&c=2").
 
-	res := rq.Get("https://www.baidu.com")
-	fmt.Println(res.Header)
-	resp2 := rq.Post("http://httpbin.org/post")
-	fmt.Println(resp2.Text)
-	fmt.Println(res.Cookie().String())
-	fmt.Println(resp2.Error())
+	//res := rq.Get("https://www.baidu.com")
+	//fmt.Println(res.Header)
+	//resp2 := rq.Post("http://httpbin.org/post")
+	//fmt.Println(resp2.Text)
+	//fmt.Println(res.Cookie().String())
+	//fmt.Println(resp2.Error())
 }
 
 func reqTest() {
@@ -140,68 +140,59 @@ type qrcode struct {
 }
 
 func checkQrcode(session *litereq.Builder, token string) {
-	resp := session.
-		Param("client_key", "aw7tduvjdk1a0x3r").
-		Param("scope", "mobile,user_info,video.create,video.data").
-		Param("next", "https://buyin.jinritemai.com/mpa/account/login?log_out=1").
-		Param("state", "douyin").
-		Param("token", token).
-		Param("jump_type", "h5").
-		Param("customize_params", "{\"comment_id\":\"\",\"source\":\"qr_only\",\"not_skip_confirm\":\"true\",\"open_extra\":\"\"}").
-		Get("https://open.douyin.com/oauth/check_qrcode/")
-	if resp.Error() != nil {
-		log.Println(resp.Error())
-	} else {
-		fmt.Println(resp.Cookie().String())
-		fmt.Println(resp.Text)
-		var qr qrcode
-		err := resp.Json(&qr)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		fmt.Println("--->", qr.Data.Status)
-		if qr.Data.Status == "confirmed" {
-			rUrl := qr.Data.Redirect
-			resp2 := session.Get(rUrl)
-			fmt.Println("---------------------------------------------------")
-			fmt.Println(resp2.Cookie().String())
-
-			fmt.Println("---------------------------------------------------")
-			resp3 := session.
-				Referer("https://buyin.jinritemai.com/mpa/account/login?log_out=1&type=24").
-				Get("https://buyin.jinritemai.com/ecomauth/loginv1/callback?login_source=buyin&subject_aid=6077&bus_child_type=1128&entry_source=0&ecom_login_extra=&_lid=705167126569")
-			fmt.Println(resp3.Cookie().String())
-			fmt.Println(resp3.Text)
-		}
-	}
+	//resp := session.
+	//	Param("client_key", "aw7tduvjdk1a0x3r").
+	//	Param("scope", "mobile,user_info,video.create,video.data").
+	//	Param("next", "https://buyin.jinritemai.com/mpa/account/login?log_out=1").
+	//	Param("state", "douyin").
+	//	Param("token", token).
+	//	Param("jump_type", "h5").
+	//	Param("customize_params", "{\"comment_id\":\"\",\"source\":\"qr_only\",\"not_skip_confirm\":\"true\",\"open_extra\":\"\"}").
+	//	Get("https://open.douyin.com/oauth/check_qrcode/")
+	//if resp.Error() != nil {
+	//	log.Println(resp.Error())
+	//} else {
+	//	fmt.Println(resp.Cookie().String())
+	//	fmt.Println(resp.Text)
+	//	var qr qrcode
+	//	err := resp.Json(&qr)
+	//	if err != nil {
+	//		fmt.Println(err)
+	//		return
+	//	}
+	//	fmt.Println("--->", qr.Data.Status)
+	//	if qr.Data.Status == "confirmed" {
+	//		rUrl := qr.Data.Redirect
+	//		resp2 := session.Get(rUrl)
+	//		fmt.Println("---------------------------------------------------")
+	//		fmt.Println(resp2.Cookie().String())
+	//
+	//		fmt.Println("---------------------------------------------------")
+	//		resp3 := session.
+	//			Referer("https://buyin.jinritemai.com/mpa/account/login?log_out=1&type=24").
+	//			Get("https://buyin.jinritemai.com/ecomauth/loginv1/callback?login_source=buyin&subject_aid=6077&bus_child_type=1128&entry_source=0&ecom_login_extra=&_lid=705167126569")
+	//		fmt.Println(resp3.Cookie().String())
+	//		fmt.Println(resp3.Text)
+	//	}
+	//}
 }
 
 func red(session *litereq.Builder, rUrl string) {
-	resp2 := session.Get(rUrl)
-	fmt.Println("---------------------------------------------------")
-	fmt.Println(resp2.Cookie().String())
 
-	fmt.Println("---------------------------------------------------")
-	resp3 := session.
-		Referer("https://buyin.jinritemai.com/mpa/account/login?log_out=1&type=24").
-		Get("https://buyin.jinritemai.com/ecomauth/loginv1/callback?login_source=buyin&subject_aid=6077&bus_child_type=1128&entry_source=0&ecom_login_extra=&_lid=705167126569")
-	fmt.Println(resp3.Cookie().String())
-	fmt.Println(resp3.Text)
 }
 
 func testDy() {
-	token := "1eec6310182ed34a8c06980ca0187226_hl"
-	se := litereq.Build().Headers(
-		map[string]string{
-			"referer":        "https://open.douyin.com/qrconnect?container=[object%20HTMLDivElement]&client_key=aw7tduvjdk1a0x3r&response_type=code&scope=mobile,user_info,video.create,video.data&redirect_uri=https://buyin.jinritemai.com/mpa/account/login?log_out=1&type=24&jump_type=h5&state=douyin&iframeAttrs=[object%20Object]&style=//lf3-eduinfra-tos.elabstatic.com/obj/elab-statics/ecdn/file/955d04c6b61cbb98e3efeeaa41fc5db7.css",
-			"user-agent":     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 Edg/132.0.0.0",
-			"sec-fetch-site": "same-origin",
-			"sec-fetch-mode": "cors",
-			"sec-fetch-dest": "empty",
-		}).Cookies("passport_csrf_token=f0bc1b484f10962eec2487a3c4e3563e; passport_csrf_token_default=f0bc1b484f10962eec2487a3c4e3563e")
-	checkQrcode(se, token)
-	fmt.Println(se.GetCookies().String())
+	//token := "1eec6310182ed34a8c06980ca0187226_hl"
+	//se := litereq.Build().Headers(
+	//	map[string]string{
+	//		"referer":        "https://open.douyin.com/qrconnect?container=[object%20HTMLDivElement]&client_key=aw7tduvjdk1a0x3r&response_type=code&scope=mobile,user_info,video.create,video.data&redirect_uri=https://buyin.jinritemai.com/mpa/account/login?log_out=1&type=24&jump_type=h5&state=douyin&iframeAttrs=[object%20Object]&style=//lf3-eduinfra-tos.elabstatic.com/obj/elab-statics/ecdn/file/955d04c6b61cbb98e3efeeaa41fc5db7.css",
+	//		"user-agent":     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36 Edg/132.0.0.0",
+	//		"sec-fetch-site": "same-origin",
+	//		"sec-fetch-mode": "cors",
+	//		"sec-fetch-dest": "empty",
+	//	}).Cookies("passport_csrf_token=f0bc1b484f10962eec2487a3c4e3563e; passport_csrf_token_default=f0bc1b484f10962eec2487a3c4e3563e")
+	//checkQrcode(se, token)
+	//fmt.Println(se.GetCookies().String())
 	//red(se, "https://buyin.jinritemai.com/mpa/account/login?code=2b0fbd0dfbbd5efdsS0AXkGy1ie0cLIOUwlG_hl\\u0026log_out=1\\u0026state=douyin")
 }
 

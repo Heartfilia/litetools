@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -279,12 +280,31 @@ func (b *Builder) GetCookies() *Cookies {
 	return b.rb.GetCookies()
 }
 
-func (b *Builder) URL() (u *url.URL, err error) {
+// GetUrl 从请求里面获取到当前的状态值
+func (b *Builder) GetUrl() (u *url.URL, err error) {
 	u, err = b.ub.URL()
 	if err != nil {
 		return u, joinErrs(ErrURL, err)
 	}
 	return u, nil
+}
+
+func (b *Builder) GetHeader(k string) string {
+	m := b.rb.headers
+	if m == nil || k == "" {
+		return ""
+	}
+	var values []string
+	for _, v := range m {
+		if strings.ToLower(v.key) == strings.ToLower(k) {
+			values = v.values
+		}
+	}
+	value := ""
+	if len(values) > 0 {
+		value = values[len(values)-1]
+	}
+	return value
 }
 
 // AddValidator adds a response validator to the Builder.
