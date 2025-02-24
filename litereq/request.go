@@ -145,7 +145,7 @@ func (b *Builder) do(req *http.Request) (err error) {
 	case doHandle:
 		err = joinErrs(ErrHandler, err)
 	}
-	//b.log("do", err)
+	b.log("do", err)
 	return err
 }
 
