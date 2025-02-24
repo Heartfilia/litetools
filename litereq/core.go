@@ -81,16 +81,14 @@ func (rb *requestBuilder) Retry(r int) {
 	}
 }
 
-func do(cl *http.Client, req *http.Request, validators []ResponseHandler, h ResponseHandler, resp *Response) (doResponse, error) {
+func do(cl *http.Client, req *http.Request, validators []ResponseHandler, h ResponseHandler) (doResponse, error) {
 	res, err := cl.Do(req)
 	if err != nil {
-		resp.error(err)
 		return doConnect, err
 	}
 	defer func(Body io.ReadCloser) {
 		err = Body.Close()
 		if err != nil {
-			resp.error(err)
 		}
 	}(res.Body)
 
@@ -99,21 +97,13 @@ func do(cl *http.Client, req *http.Request, validators []ResponseHandler, h Resp
 			continue
 		}
 		if err = v(res); err != nil {
-			resp.error(err)
 			return doValidate, err
 		}
 	}
 
 	err = switchContentEncoding(res)
-	resp.detail(res.Body)
-	resp.cookie(res.Cookies())
-	resp.error(err)
-	resp.Status = res.StatusCode
-	resp.Header = res.Header
-	resp.Proto = res.Proto
 
 	if err = h(res); err != nil {
-		resp.error(err)
 		return doHandle, err
 	}
 

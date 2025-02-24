@@ -1,10 +1,10 @@
 package litereq
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
-	"github.com/Heartfilia/litetools/litereq/utils"
 	"github.com/Heartfilia/litetools/litestr"
 	"io"
 	"log"
@@ -33,15 +33,16 @@ type Builder struct {
 
 // 后面还要增加 tls 指纹的处理
 
-func Build(ctx ...context.Context) *Builder {
-	return &Builder{
+func Build(baseUrl string) *Builder {
+	b := &Builder{
 		ub: urlBuilder{},
 		rb: requestBuilder{
 			retry: 1, // setDefault 1
 		},
-		h1:  false,
-		ctx: If(Or(ctx...) == nil, context.Background(), Or(ctx...)),
+		h1: false,
 	}
+	b.ub.BaseURL(baseUrl)
+	return b
 }
 
 func joinErrs(a, b error) error {
@@ -95,13 +96,6 @@ func (b *Builder) Params(paramString string) *Builder {
 	return b
 }
 
-// Handle sets the response handler for a Builder.
-// To use multiple handlers, use ChainHandlers.
-func (b *Builder) Handle(h ResponseHandler) *Builder {
-	b.handler = h
-	return b
-}
-
 func (b *Builder) request(ctx context.Context) (req *http.Request, err error) {
 	u, err := b.url()
 	if err != nil {
@@ -116,7 +110,7 @@ func (b *Builder) request(ctx context.Context) (req *http.Request, err error) {
 	return req, nil
 }
 
-func (b *Builder) do(req *http.Request, resp *Response) (err error) {
+func (b *Builder) do(req *http.Request) (err error) {
 	cl := Or(b.hc, &http.Client{
 		Transport: createTransport(b.proxy, b.h1),
 		Timeout:   Or(b.timeout, DefaultTimeout),
@@ -134,7 +128,7 @@ func (b *Builder) do(req *http.Request, resp *Response) (err error) {
 	var code doResponse
 
 	for i := 0; i < b.rb.retry; i++ {
-		code, err = do(cl, req, validators, h, resp)
+		code, err = do(cl, req, validators, h)
 		if code == doOK {
 			break
 		}
@@ -150,7 +144,7 @@ func (b *Builder) do(req *http.Request, resp *Response) (err error) {
 	case doHandle:
 		err = joinErrs(ErrHandler, err)
 	}
-	b.log("do", err)
+	//b.log("do", err)
 	return err
 }
 
@@ -285,69 +279,161 @@ func (b *Builder) GetCookies() *Cookies {
 	return b.rb.GetCookies()
 }
 
+func (b *Builder) URL() (u *url.URL, err error) {
+	u, err = b.ub.URL()
+	if err != nil {
+		return u, joinErrs(ErrURL, err)
+	}
+	return u, nil
+}
+
+// AddValidator adds a response validator to the Builder.
+// Adding a validator disables DefaultValidator.
+// To disable all validation, just add nil.
+func (b *Builder) AddValidator(h ResponseHandler) *Builder {
+	b.validators = append(b.validators, h)
+	return b
+}
+
+// Handle sets the response handler for a Builder.
+// To use multiple handlers, use ChainHandlers.
+func (b *Builder) Handle(h ResponseHandler) *Builder {
+	b.handler = h
+	return b
+}
+
+// Config allows Builder to be extended by functions that set several options at once.
+func (b *Builder) Config(cfgs ...Config) *Builder {
+	for _, cfg := range cfgs {
+		if cfg != nil {
+			cfg(b)
+		}
+	}
+	return b
+}
+
 // -----核心入口
 
-func (b *Builder) fetch(sourceUrl string) *Response {
-	defer b.emptyQueryFields()
-	u := utils.ParseUrl(sourceUrl)
-	b.ub.BaseURL(sourceUrl)
-	b.ub.Scheme(u.Scheme)
-	b.ub.Host(u.Host)
-
-	resp := &Response{}
-	req, err := b.request(b.ctx)
+func (b *Builder) Fetch(ctx context.Context) (err error) {
+	//defer b.emptyQueryFields()
+	req, err := b.request(ctx)
 	if err != nil {
-		resp.error(err)
-		return resp
+		return
 	}
-	err = b.do(req, resp)
-	resp.error(err)
-	return resp
+	return b.do(req)
 }
 
 // ---------------------------------------------
 
-func (b *Builder) Head(sourceUrl string) *Response {
+func (b *Builder) Head() *Builder {
 	b.rb.Method(http.MethodHead)
-	return b.fetch(sourceUrl)
+	return b
 }
 
-func (b *Builder) Get(sourceUrl string) *Response {
+func (b *Builder) Get() *Builder {
 	b.rb.Method(http.MethodGet)
-	return b.fetch(sourceUrl)
+	return b
 }
 
-func (b *Builder) Post(sourceUrl string) *Response {
+func (b *Builder) Post() *Builder {
 	b.rb.Method(http.MethodPost)
-	return b.fetch(sourceUrl)
+	return b
 }
 
-func (b *Builder) Put(sourceUrl string) *Response {
+func (b *Builder) Put() *Builder {
 	b.rb.Method(http.MethodPut)
-	return b.fetch(sourceUrl)
+	return b
 }
 
-func (b *Builder) Patch(sourceUrl string) *Response {
+func (b *Builder) Patch() *Builder {
 	b.rb.Method(http.MethodPatch)
-	return b.fetch(sourceUrl)
+	return b
 }
 
-func (b *Builder) Options(sourceUrl string) *Response {
+func (b *Builder) Options() *Builder {
 	b.rb.Method(http.MethodOptions)
-	return b.fetch(sourceUrl)
+	return b
 }
 
-func (b *Builder) Delete(sourceUrl string) *Response {
+func (b *Builder) Delete() *Builder {
 	b.rb.Method(http.MethodDelete)
-	return b.fetch(sourceUrl)
+	return b
 }
 
-func (b *Builder) Trace(sourceUrl string) *Response {
+func (b *Builder) Trace() *Builder {
 	b.rb.Method(http.MethodTrace)
-	return b.fetch(sourceUrl)
+	return b
 }
 
-func (b *Builder) Connect(sourceUrl string) *Response {
+func (b *Builder) Connect() *Builder {
 	b.rb.Method(http.MethodConnect)
-	return b.fetch(sourceUrl)
+	return b
+}
+
+// -----------------------
+
+// CheckStatus adds a validator for status code of a response.
+func (b *Builder) CheckStatus(acceptStatuses ...int) *Builder {
+	return b.AddValidator(CheckStatus(acceptStatuses...))
+}
+
+// CheckContentType adds a validator for the content type header of a response.
+func (b *Builder) CheckContentType(cts ...string) *Builder {
+	return b.AddValidator(CheckContentType(cts...))
+}
+
+// CheckPeek adds a validator that peeks at the first n bytes of a response body.
+func (b *Builder) CheckPeek(n int, f func([]byte) error) *Builder {
+	return b.AddValidator(CheckPeek(n, f))
+}
+
+// ToJSON sets the Builder to decode a response as a JSON object
+func (b *Builder) ToJSON(v any) *Builder {
+	return b.Handle(ToJSON(v))
+}
+
+// ToString sets the Builder to write the response body to the provided string pointer.
+func (b *Builder) ToString(sp *string) *Builder {
+	return b.Handle(ToString(sp))
+}
+
+// ToBytesBuffer sets the Builder to write the response body to the provided bytes.Buffer.
+func (b *Builder) ToBytesBuffer(buf *bytes.Buffer) *Builder {
+	return b.Handle(ToBytesBuffer(buf))
+}
+
+// ToWriter sets the Builder to copy the response body into w.
+func (b *Builder) ToWriter(w io.Writer) *Builder {
+	return b.Handle(ToWriter(w))
+}
+
+// ToFile sets the Builder to write the response body to the given file name.
+// The file and its parent directories are created automatically.
+// For more advanced use cases, use ToWriter.
+func (b *Builder) ToFile(name string) *Builder {
+	return b.Handle(ToFile(name))
+}
+
+// CopyHeaders adds a validator which copies the response headers to h.
+// Note that because CopyHeaders adds a validator,
+// the DefaultValidator is disabled and must be added back manually
+// if status code validation is desired.
+func (b *Builder) CopyHeaders(h map[string][]string) *Builder {
+	return b.
+		AddValidator(CopyHeaders(h))
+}
+
+// ToHeaders sets the method to HEAD and adds a handler which copies the response headers to h.
+// To just copy headers, see Builder.CopyHeaders.
+func (b *Builder) ToHeaders(h map[string][]string) *Builder {
+	return b.
+		Head().
+		Handle(ChainHandlers(CopyHeaders(h), consumeBody))
+}
+
+// ErrorJSON adds a validator that applies DefaultValidator
+// and decodes the response as a JSON object
+// if the DefaultValidator check fails.
+func (b *Builder) ErrorJSON(v any) *Builder {
+	return b.AddValidator(ErrorJSON(v))
 }
