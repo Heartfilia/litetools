@@ -3,6 +3,7 @@ package litereq
 import (
 	"bytes"
 	"context"
+	"crypto/md5"
 	"encoding/base64"
 	"fmt"
 	"github.com/Heartfilia/litetools/litestr"
@@ -23,7 +24,6 @@ type Builder struct {
 	ub         urlBuilder
 	proxy      ProxyGetter
 	h1         bool // 默认用h2
-	ctx        context.Context
 	validators []ResponseHandler
 	handler    ResponseHandler
 	cookieJar  *cookiejar.Jar
@@ -276,8 +276,14 @@ func (b *Builder) emptyQueryFields() {
 	// header和cookie之类的全局共享 不清理
 }
 
+// 下面的都是用于获取当前请求的一些参数详情信息的 一般放到 config里面提取信息用
+
 func (b *Builder) GetCookies() *Cookies {
 	return b.rb.GetCookies()
+}
+
+func (b *Builder) GetCookieValues() []kvPair {
+	return b.rb.cookies
 }
 
 // GetUrl 从请求里面获取到当前的状态值
@@ -305,6 +311,48 @@ func (b *Builder) GetHeader(k string) string {
 		value = values[len(values)-1]
 	}
 	return value
+}
+
+func (b *Builder) GetBodyMd5() (md5Buf []byte) {
+	if b.rb.getBody == nil {
+		return nil
+	}
+	bd, err := b.rb.getBody()
+	if err != nil {
+		return nil
+	}
+	bt, err := io.ReadAll(bd)
+	defer func(bd io.ReadCloser) {
+		err := bd.Close()
+		if err != nil {
+
+		}
+	}(bd)
+	if err != nil {
+		return nil
+	}
+	hashed := md5.New()
+	hashed.Write(bt)
+	md5Buf = hashed.Sum(nil)
+	return
+}
+
+func (b *Builder) GetBodyString() string {
+	if b.rb.getBody == nil {
+		return ""
+	}
+	bd, err := b.rb.getBody()
+	if err != nil {
+		return ""
+	}
+	bt, err := io.ReadAll(bd)
+	defer func(bd io.ReadCloser) {
+		err := bd.Close()
+		if err != nil {
+
+		}
+	}(bd)
+	return string(bt)
 }
 
 // AddValidator adds a response validator to the Builder.
