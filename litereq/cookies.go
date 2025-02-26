@@ -16,7 +16,7 @@ type Cookies struct {
 }
 
 // NewCookieJar returns a cookie jar using the standard public suffix list.
-func NewCookieJar() http.CookieJar {
+func NewCookieJar() *cookiejar.Jar {
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	// As of Go 1.16, cookiejar.New err is hardcoded nil
 	if err != nil {

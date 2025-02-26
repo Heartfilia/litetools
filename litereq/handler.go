@@ -44,8 +44,8 @@ func consumeBody(res *http.Response) (err error) {
 // ToWrap 下面俩是自定义的返回格式 实际用不到 忽略
 func ToWrap[T any](w *Wrap[T]) ResponseHandler {
 	return func(res *http.Response) error {
-		w.Resp = res
-		w.Req = res.Request
+		w.Response = res
+		w.Request = res.Request
 		data, err := io.ReadAll(res.Body)
 		if err != nil {
 			w.Err = err

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/Heartfilia/litetools/litejs"
 	"github.com/Heartfilia/litetools/litejson"
@@ -84,27 +85,24 @@ func testTag() {
 	log.Println(litestr.E(), "测试E的状态")
 }
 
+func FetchMsg() {
+
+}
+
 func testReq() {
-	//rq := litereq.Build().
-	//Cookie("aaa", "1111").
-	//Cookie("bbbb", "22222").
-	//Cookies("aa=1; bbb=;ccc=2").
-	//Proxy("http://127.0.0.1:7890").
-	//Header("referer", "https://www.baidu.com").
-	//Header("UAX", "hhh").
-	//UserAgent("lite-tools/v1").
-	//H1(true).
-
-	//Headers(map[string]string{"referer": "https://www.baidu.com", "xxx": "123", "user-agent": "lite-rq"})
-	//Param("d", "3").
-	//Params("a=1&b=&c=2").
-
-	//res := rq.Get("https://www.baidu.com")
-	//fmt.Println(res.Header)
-	//resp2 := rq.Post("http://httpbin.org/post")
-	//fmt.Println(resp2.Text)
-	//fmt.Println(res.Cookie().String())
-	//fmt.Println(resp2.Error())
+	// 采用自定义接收方案 any位置可以放你那边任意格式的struct
+	jar := litereq.NewCookieJar()
+	//jar, _ := cookiejar.New(nil)  // 或者这里自定义
+	var resp litereq.Wrap[any]
+	_ = litereq.Build("https://www.coingecko.com/accounts/csrf_meta.json").
+		UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0").
+		Referer("https://www.coingecko.com/").
+		Handle(litereq.ToWrap(&resp)).
+		Proxy("http://127.0.0.1:7890").
+		CookieJar(jar).
+		Fetch(context.Background())
+	fmt.Println(resp.Data)
+	fmt.Println("-->", jar)
 }
 
 func reqTest() {
@@ -202,8 +200,8 @@ func main() {
 	//testNet()
 	//testStr()
 	//testTag()
-	//testReq()
+	testReq()
 	//reqTest()
 	//testJS()
-	testDy()
+	//testDy()
 }
