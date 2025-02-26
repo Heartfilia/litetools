@@ -187,30 +187,7 @@ import (
 func req(){
 	// 借鉴了优秀的项目 https://github.com/earthboundkid/requests
 	// 改进了我之前的请求包 大体使用方法一致  还有未实现的功能：tls 指纹，后续更新
-	// 下面是可以复用session的写法
-    rq := litereq.Build().
-    //Cookie("aaa", "1111").
-    //Cookie("bbbb", "22222").
-    //Cookies("aa=1; bbb=;ccc=2").
-    //Proxy("http://127.0.0.1:7890").
-    //Header("referer", "https://www.baidu.com").
-    //Header("UAX", "hhh").
-    //UserAgent("lite-tools/v1").
-    //H1(true).
-    
-    Headers(map[string]string{"referer": "https://www.baidu.com", "xxx": "123", "user-agent": "lite-rq"})
-    //Param("d", "3").
-    //Params("a=1&b=&c=2").
-    
-    res := rq.Get("https://www.baidu.com")
-    fmt.Println(res.Header)
-    resp2 := rq.Post("http://httpbin.org/post")
-    fmt.Println(resp2.Text)
-    fmt.Println(res.Cookie().String())
-	
-	// 直接临时用或者只用一次的情况
-	res3 := litereq.Build().Get("http://httpbin.org/get")
-	fmt.Println(res3.Error())
+	// 整体同该框架 但是额外多了一些处理
 }
 ```
 
