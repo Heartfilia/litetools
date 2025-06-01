@@ -121,10 +121,10 @@ func reqTest() {
 
 func testJS() {
 	cmd := litejs.CmdNode{
-		JsPath:  "test\\rbzid.js", // 最好写绝对路径 相对路径我还没测试 晚点...
-		Verbose: true,             // 如果结果不对的时候打印提示
+		JsPath:  "test\\xzst81.js", // 最好写绝对路径 相对路径我还没测试 晚点...
+		Verbose: true,              // 如果结果不对的时候打印提示
 	}
-	res := cmd.Call("DrmK8giIdcVRRZq8XRNp5aRujILYxhBQEuOQc\\/q1b0nKD2IvT0P5u3TqHeTtOSocz0p2pLFb+0A\\/eMMeQX6ImMapoAurPqEPC7uAvM104ZYAfP9k1fSjJz+d0\\/EPLwepf9M5CDPG6sDXkA03wOnGs4H\\/9FtxvE5DUCxRoCaV0JWIU5L8M+ywiTilxLJnFKbFVeY+46g\\/OhdWp8WI6+\\/ynI1+1QWQwV8bFgM1sNNGUG2Jql7JpofNkQn1LQb1SHP5") // 有参数就传 没有就不管  因为是node那边调用 所以不需要传入函数名
+	res := cmd.Call() // 有参数就传 没有就不管  因为是node那边调用 所以不需要传入函数名
 
 	// 特别注意：如果js返回的是一个 对象 最好是  JSON.stringify() 包着处理一次 要不然 golang的json包会报错
 	fmt.Println(string(res))
@@ -200,8 +200,8 @@ func main() {
 	//testNet()
 	//testStr()
 	//testTag()
-	testReq()
+	//testReq()
 	//reqTest()
-	//testJS()
+	testJS()
 	//testDy()
 }
