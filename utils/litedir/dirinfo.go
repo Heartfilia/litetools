@@ -12,7 +12,7 @@ func LiteDir() string {
 		return ""
 	}
 
-	liteTools := path.Join(dir, "lite-tools")
+	liteTools := path.Join(dir, ".lite-tools")
 	if !FileExists(liteTools) {
 		_ = os.Mkdir(liteTools, 0777)
 	}

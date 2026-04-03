@@ -36,50 +36,118 @@ func isSystem(option string) bool {
 	return false
 }
 
+func normalizePlatform(option string) string {
+	switch option {
+	case "windows":
+		return "win"
+	case "macos":
+		return "mac"
+	case "harmonyos":
+		return "harmony"
+	default:
+		return option
+	}
+}
+
+func randomDesktopBrowser(platform string) string {
+	switch platform {
+	case "mac":
+		return liteslice.RandomChoice([]string{"chrome", "firefox", "edge", "safari"})
+	case "linux":
+		return liteslice.RandomChoice([]string{"chrome", "firefox", "edge"})
+	default:
+		return liteslice.RandomChoice([]string{"chrome", "firefox", "edge"})
+	}
+}
+
+func browserForPlatform(platform string, preferred string) string {
+	switch platform {
+	case "ios":
+		if preferred == "" {
+			return "safari"
+		}
+		if preferred == "safari" {
+			return preferred
+		}
+		return "safari"
+	case "android", "harmony":
+		if preferred == "chrome" || preferred == "firefox" || preferred == "edge" {
+			return preferred
+		}
+		return "chrome"
+	case "mac":
+		if preferred == "" {
+			return randomDesktopBrowser(platform)
+		}
+		if preferred == "ie" {
+			return "safari"
+		}
+		return preferred
+	case "linux":
+		if preferred == "" {
+			return randomDesktopBrowser(platform)
+		}
+		if preferred == "safari" || preferred == "ie" {
+			return "chrome"
+		}
+		return preferred
+	case "win":
+		if preferred == "" {
+			return randomDesktopBrowser(platform)
+		}
+		if preferred == "safari" {
+			return "chrome"
+		}
+		return preferred
+	default:
+		if preferred == "" {
+			return randomDesktopBrowser("win")
+		}
+		return preferred
+	}
+}
+
 func Options(option string) string {
-	option = strings.ToLower(option) // 先全部弄成小写
+	option = normalizePlatform(strings.ToLower(option)) // 先全部弄成小写
 	var mc makeChoice
 	if isBrowser(option) {
-		mc.OsType = "win"
-		if option == "chrome" || option == "chromium" {
+		switch option {
+		case "chrome", "chromium":
 			mc.Browser = "chrome"
-		} else if option == "firefox" {
+			mc.OsType = "win"
+		case "firefox":
 			mc.Browser = "firefox"
-		} else if option == "opera" {
+			mc.OsType = liteslice.RandomChoice([]string{"win", "mac", "linux"})
+		case "opera":
 			mc.Browser = "opera"
-		} else if option == "ie" {
+			mc.OsType = liteslice.RandomChoice([]string{"win", "mac", "linux"})
+		case "ie":
 			mc.Browser = "ie"
-		} else if option == "edge" {
+			mc.OsType = "win"
+		case "edge":
 			mc.Browser = "edge"
-		} else if option == "safari" {
+			mc.OsType = liteslice.RandomChoice([]string{"win", "mac", "linux"})
+		case "safari":
 			mc.Browser = "safari"
-			mc.OsType = "mac"
+			mc.OsType = liteslice.RandomChoice([]string{"mac", "ios"})
 		}
 	} else if isSystem(option) {
-		mc.Browser = liteslice.RandomChoice([]string{"chrome", "edge"})
 		if option == "pc" {
 			mc.OsType = liteslice.RandomChoice([]string{"win", "mac", "linux"})
-			if mc.OsType == "mac" {
-				mc.Browser = liteslice.RandomChoice([]string{"chrome", "edge", "safari"})
-			}
+			mc.Browser = browserForPlatform(mc.OsType, "")
 		} else if option == "mobile" {
-			mc.OsType = liteslice.RandomChoice([]string{"android", "ios", "harmonyos"})
-			if mc.OsType == "harmonyos" {
-				mc.OsType = "harmony"
-			}
-		} else if option == "win" || option == "windows" {
-			mc.OsType = "win"
-		} else if option == "mac" || option == "macos" {
-			mc.OsType = "mac"
-		} else if option == "harmony" || option == "harmonyos" {
-			mc.OsType = "harmony"
+			mc.OsType = liteslice.RandomChoice([]string{"android", "ios", "harmony"})
+			mc.Browser = browserForPlatform(mc.OsType, "")
 		} else {
 			mc.OsType = option
+			mc.Browser = browserForPlatform(mc.OsType, "")
 		}
 	} else {
 		// 否则直接从浏览器里面随机挑返回
 		mc.OsType = liteslice.RandomChoice([]string{"win", "mac", "linux"})
-		mc.Browser = liteslice.RandomChoice([]string{"chrome", "firefox", "edge"})
+		mc.Browser = browserForPlatform(mc.OsType, "")
 	}
+	mc.OsType = normalizePlatform(mc.OsType)
+	mc.Browser = browserForPlatform(mc.OsType, mc.Browser)
 	return mc.choice()
 }

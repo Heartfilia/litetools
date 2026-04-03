@@ -7,7 +7,7 @@ import (
 
 func GetUA(options ...string) string {
 	var platform string
-	if options == nil {
+	if len(options) == 0 {
 		platform = ua.DefaultChoice
 	} else {
 		if len(options) == 1 {
