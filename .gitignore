@@ -32,5 +32,6 @@ build/
 !.env.example
 
 # Project-local scratch files
+test
 test.py
 test.go
