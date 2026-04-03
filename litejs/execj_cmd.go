@@ -1,8 +1,11 @@
 package litejs
 
 import (
+	"errors"
+	"fmt"
 	"github.com/Heartfilia/litetools/litestr"
 	"log"
+	"os"
 	"os/exec"
 )
 
@@ -16,29 +19,51 @@ type CmdNode struct {
 	Verbose bool   // 是否需要打印提示 - 默认不打印
 }
 
-// Call
-// 调用原生的 node 来获取结果
-func (c *CmdNode) Call(args ...string) []byte {
+func (c *CmdNode) prepare() error {
 	if c.Node == "" {
 		c.Node = "node"
 	}
+	if c.JsPath == "" {
+		return errors.New("js path is empty")
+	}
+	if _, err := os.Stat(c.JsPath); err != nil {
+		return fmt.Errorf("invalid js path %q: %w", c.JsPath, err)
+	}
+	return nil
+}
+
+// CallWithError
+// 调用原生的 node 来获取结果，并把执行错误返回给调用方
+func (c *CmdNode) CallWithError(args ...string) ([]byte, error) {
+	if err := c.prepare(); err != nil {
+		return nil, err
+	}
 
 	cmd := exec.Command(c.Node, append([]string{c.JsPath}, args...)...)
-
 	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return output, fmt.Errorf("execute %s failed: %w; output: %s", c.JsPath, err, string(output))
+	}
+	if len(output) == 0 && c.Verbose {
+		log.Printf(`%s
+	%s
+	+------------------------------------------------------------------------------------------+
+	|   (function(args){console.log(%s(...args));})(process.argv.slice(2))   |
+	+------------------------------------------------------------------------------------------+
+	%s：如果js返回的是一个对象最好是<JSON.stringify()>处理一次,要不然golang的json包会报错
+	`, litestr.W(), litestr.ColorString("将下面的内容放到你的js代码最后一行即可 调用的函数 换成你自己的", "red"), litestr.ColorString("这里换成你的函数名称", "green"),
+			litestr.ColorString("特别注意", "yellow"))
+	}
+	return output, nil
+}
+
+// Call
+// 调用原生的 node 来获取结果
+func (c *CmdNode) Call(args ...string) []byte {
+	output, err := c.CallWithError(args...)
 	if err != nil {
 		log.Printf("%s Error executing JavaScript file: %v\n", litestr.E(), err)
 		return nil
-	}
-	if len(output) == 0 && c.Verbose == true {
-		log.Printf(`%s
-%s
-+------------------------------------------------------------------------------------------+
-|   (function(args){console.log(%s(...args));})(process.argv.slice(2))   |
-+------------------------------------------------------------------------------------------+
-%s：如果js返回的是一个对象最好是<JSON.stringify()>处理一次,要不然golang的json包会报错
-`, litestr.W(), litestr.ColorString("将下面的内容放到你的js代码最后一行即可 调用的函数 换成你自己的", "red"), litestr.ColorString("这里换成你的函数名称", "green"),
-			litestr.ColorString("特别注意", "yellow"))
 	}
 	return output
 }

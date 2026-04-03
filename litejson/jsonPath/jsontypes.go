@@ -6,30 +6,26 @@ import (
 	"fmt"
 	"github.com/Heartfilia/litetools/litestr"
 	"github.com/Heartfilia/litetools/utils/litedir"
-	"log"
-	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
 const (
-	_     = iota + '﮽'
-	dot   // .
-	left  // [
-	right // ]
-	line  // |
-	blank //
+	_     rune = iota + '﮽'
+	dot        // .
+	left       // [
+	right      // ]
+	line       // |
+	blank      //
 )
 
 type resultCache struct {
 	//Base    string         // 缓存当前处理的段的数据   // 没啥用 先处理了
-	BaseAny any            // 把用json提取的Base放到这里
-	Array   []any          // 如果下一段是 任意类型数组
-	Result  any            // 结果
-	Object  map[string]any // 如果下一段是任意类型的map对象
-	OK      bool           // 是否是最终结果
-	Error   error          // 程序过程中的错误
+	BaseAny any   // 把用json提取的Base放到这里
+	Result  any   // 结果
+	OK      bool  // 是否是最终结果
+	Error   error // 程序过程中的错误
 }
 
 type Result struct {
@@ -81,19 +77,21 @@ func (r *Result) Error() error {
 }
 
 func (r *Result) String() string {
-	if r.Value() != nil {
-		thisValueType := fmt.Sprintf("%v", reflect.TypeOf(r.Value()))
-		if strings.Index(thisValueType, "[") != -1 || strings.Index(thisValueType, "{") != -1 {
-			// 如果 可能是结构类型的 转变为json
-			marshal, err := json.Marshal(r.Value())
-			if err != nil {
-				return fmt.Sprintf("%v", r.Value())
-			}
-			return string(marshal)
+	if r.Value() == nil {
+		return ""
+	}
+
+	switch r.Value().(type) {
+	case []any, map[string]any:
+		// 如果是结构类型的 转变为json
+		marshal, err := json.Marshal(r.Value())
+		if err != nil {
+			return fmt.Sprintf("%v", r.Value())
 		}
+		return string(marshal)
+	default:
 		return fmt.Sprintf("%v", r.Value())
 	}
-	return ""
 }
 
 func (r *Result) Int() int {
@@ -342,6 +340,15 @@ func replaceTo(str string, mode int) string {
 	return str
 }
 
+func restoreLiteralRule(str string) string {
+	str = strings.ReplaceAll(str, string(dot), ".")
+	str = strings.ReplaceAll(str, string(left), "[")
+	str = strings.ReplaceAll(str, string(right), "]")
+	str = strings.ReplaceAll(str, string(line), "|")
+	str = strings.ReplaceAll(str, string(blank), " ")
+	return str
+}
+
 func SplitRule(rule string) []string {
 	// 替换特殊符号 如 \.   \[   \|
 	rule = replaceTo(rule, 1)
@@ -358,7 +365,7 @@ func (r *regexRule) isEmpty() bool {
 
 func (r *regexRule) initRegex() {
 	r.OnlyArray = regexp.MustCompile("^\\[-?\\d+]$")
-	r.OnlyKey = regexp.MustCompile("^[^[]+")
+	r.OnlyKey = regexp.MustCompile("^[^\\[\\]]+$")
 	r.KeyArray = regexp.MustCompile(".+\\[-?\\d+]$")
 	r.SplitKeyArray = regexp.MustCompile("\\[-?\\d+]")
 }
@@ -382,12 +389,16 @@ func clearArray(rule *string, array []string) {
 	}
 }
 
+func (r *resultCache) setError(err error) {
+	r.Result = nil
+	r.OK = true
+	r.Error = err
+}
+
 func (r *resultCache) parse(rule string, lastKey bool) {
 	nowObj := r.BaseAny
 	if nowObj == nil && lastKey != true {
-		r.Result = nil
-		r.OK = true
-		r.Error = errors.New(colorPanic("there is a next node, but no object is available"))
+		r.setError(errors.New(colorPanic("there is a next node, but no object is available")))
 		return
 	}
 	if regRuleCache.isEmpty() {
@@ -402,59 +413,45 @@ func (r *resultCache) parse(rule string, lastKey bool) {
 		numberRule = strings.ReplaceAll(numberRule, "]", "") // 去除前后括号
 		numberInRule, err := strconv.Atoi(numberRule)
 		if err != nil {
-			r.Result = nil
-			r.OK = true
-			r.Error = errors.New(colorPanic(" wrong extraction sequence number"))
+			r.setError(errors.New(colorPanic("wrong extraction sequence number")))
 			return
 		}
 		if nowObj == nil {
-			r.Result = nil
-			r.OK = true
-			r.Error = errors.New(colorPanic("runtime error: invalid memory address or nil pointer dereference"))
+			r.setError(errors.New(colorPanic("runtime error: invalid memory address or nil pointer dereference")))
 			return
 		}
-		typeAny := reflect.TypeOf(nowObj)
-		if typeAny != nil {
-			objKind := typeAny.Kind()
-			switch objKind {
-			case reflect.Slice:
-				array := nowObj.([]any)
-				if numberInRule < 0 {
-					// 兼容 [-1]  [-2]
-					numberInRule += len(array)
-					if numberInRule < 0 {
-						r.Result = nil
-						r.OK = true
-						r.Error = errors.New(colorPanic(
-							fmt.Sprintf("runtime error: index out of range [%d] with length %d",
-								numberInRule-len(array), len(array)),
-						))
-						return
-					}
-				} else if numberInRule > len(array)-1 {
-					r.Result = nil
-					r.OK = true
-					r.Error = errors.New(colorPanic(
-						fmt.Sprintf("runtime error: index out of range [%d] with length %d",
-							numberInRule, len(array)),
-					))
-					return
-				}
+		array, ok := nowObj.([]any)
+		if !ok {
+			r.setError(errors.New(colorPanic(fmt.Sprintf("current node is %T, not an array", nowObj))))
+			return
+		}
 
-				if array == nil || len(array)-1 < numberInRule {
-					r.Result = nil
-					r.OK = true
-					r.Error = errors.New(colorPanic("no slice or wrong extraction sequence number"))
-					return
-				}
-				r.BaseAny = array[numberInRule]
-
-				if lastKey {
-					r.Result = array[numberInRule]
-				}
+		if numberInRule < 0 {
+			// 兼容 [-1]  [-2]
+			numberInRule += len(array)
+			if numberInRule < 0 {
+				r.setError(errors.New(colorPanic(
+					fmt.Sprintf("runtime error: index out of range [%d] with length %d",
+						numberInRule-len(array), len(array)),
+				)))
+				return
 			}
-		} else {
-			r.OK = true
+		} else if numberInRule > len(array)-1 {
+			r.setError(errors.New(colorPanic(
+				fmt.Sprintf("runtime error: index out of range [%d] with length %d",
+					numberInRule, len(array)),
+			)))
+			return
+		}
+
+		if array == nil || len(array)-1 < numberInRule {
+			r.setError(errors.New(colorPanic("no slice or wrong extraction sequence number")))
+			return
+		}
+		r.BaseAny = array[numberInRule]
+
+		if lastKey {
+			r.Result = array[numberInRule]
 		}
 	} else if regRuleCache.keyWithArray(rule) {
 		// 如果当前目标key是 a[0]   a[1][2] 那么预期当前节点能获取到的样式应该是 map[string]any  需要拆分然后继续处理一次
@@ -469,26 +466,33 @@ func (r *resultCache) parse(rule string, lastKey bool) {
 			}
 			lastKeyInd = lastKeyInd && lastKey // 要是最后一个 并且是最后一个格子
 			r.parse(item, lastKeyInd)
+			if r.OK {
+				return
+			}
 		}
 	} else if regRuleCache.onlyKey(rule) {
 		// 如果当前目标key是 a    那么预期当前节点能获取到的样式应该是 map[string]any
 		//fmt.Println("当前格式是 onlyKey     :", rule, r.BaseAny)
-		typeAny := reflect.TypeOf(nowObj)
-		if typeAny != nil {
-			objKind := typeAny.Kind()
-			switch objKind {
-			case reflect.Map:
-				value := nowObj.(map[string]any)[rule]
-				r.BaseAny = value
-				if lastKey {
-					r.Result = value
-				}
+		obj, ok := nowObj.(map[string]any)
+		if !ok {
+			r.setError(errors.New(colorPanic(fmt.Sprintf("current node is %T, not an object", nowObj))))
+			return
+		}
+		value, exists := obj[rule]
+		if !exists {
+			r.BaseAny = nil
+			if lastKey {
+				r.Result = nil
+				r.OK = true
 			}
-		} else {
-			r.OK = true
+			return
+		}
+		r.BaseAny = value
+		if lastKey {
+			r.Result = value
 		}
 	} else {
-		log.Fatal("没有匹配到的格式是:", rule, lastKey)
+		r.setError(errors.New(colorPanic(fmt.Sprintf("unsupported rule segment: %s", rule))))
 	}
 
 }
@@ -503,6 +507,10 @@ func transToObj(jsonString string) (any, error) {
 }
 
 func parseRule(jsonString, rule string, resultObj *Result) {
+	resultObj.Err = nil
+	resultObj.setValue(nil)
+	resultObj.setLast(false)
+
 	res, err := transToObj(jsonString)
 	if err != nil {
 		resultObj.Err = err
@@ -514,13 +522,14 @@ func parseRule(jsonString, rule string, resultObj *Result) {
 		BaseAny: res,
 	}
 
-	rule = replaceTo(rule, 0) // 恢复成正常的rule格式
+	rule = replaceTo(rule, 1) // 保护转义后的特殊字符，避免被错误拆分
 	eachBlock := strings.Split(rule, ".")
 	lastKey := false
 	for ind, each := range eachBlock {
 		if ind == len(eachBlock)-1 {
 			lastKey = true // 如果是最后一个key 那么筛选情况可能不一样
 		}
+		each = restoreLiteralRule(each)
 		js.parse(each, lastKey)
 		if js.OK {
 			break
@@ -537,7 +546,7 @@ func parseRule(jsonString, rule string, resultObj *Result) {
 }
 
 func JudgeAndExtractEachRule(jsonString string, rules []string, resultObj *Result) {
-	if strings.Index(jsonString, ".json") != -1 && litedir.FileExists(jsonString) {
+	if strings.HasSuffix(jsonString, ".json") && litedir.FileExists(jsonString) {
 		// 只是猜测是不是json的文件 如果是的话 直接读取处理
 		tempString := litedir.FileReader(jsonString)
 		if tempString != "" {
