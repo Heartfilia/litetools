@@ -11,7 +11,6 @@ import (
 	"github.com/Heartfilia/litetools/litestr"
 	"github.com/Heartfilia/litetools/litetime"
 	"log"
-	"time"
 )
 
 func testTime() {
@@ -200,6 +199,7 @@ func testPage() {
 
 	opt := litepage.NewChromiumOptions()
 	opt.SetLocalPort(9222)
+	opt.SetProxy("http://127.0.0.1:1081") //
 	browser, err := litepage.NewBrowser(opt)
 	if err != nil {
 		log.Fatalln(err.Error())
@@ -211,12 +211,13 @@ func testPage() {
 		log.Fatalln("get current page failed:", err.Error())
 		return
 	}
-	defer func(browser *litepage.Browser, targetID string) {
-		err := browser.ClosePage(targetID)
-		if err != nil {
 
-		}
-	}(browser, page.ID())
+	//defer func(browser *litepage.Browser, targetID string) {
+	//	err := browser.ClosePage(targetID)
+	//	if err != nil {
+	//
+	//	}
+	//}(browser, page.ID())
 
 	if err = browser.ActivatePage(page.ID()); err != nil {
 		log.Fatalln("activate current page failed:", err.Error())
@@ -224,31 +225,31 @@ func testPage() {
 	}
 
 	//if err = page.Navigate("https://www.douyin.com"); err != nil {
-	//	log.Fatalln("navigate baidu failed:", err.Error())
+	//	log.Fatalln("navigate page failed:", err.Error())
 	//	return
 	//}
 
-	if err = page.WaitURLContains("douyin.com", 15*time.Second); err != nil {
-		log.Fatalln("wait baidu failed:", err.Error())
-		return
-	}
+	//if err = page.WaitURLContains("douyin.com", 15*time.Second); err != nil {
+	//	log.Fatalln("wait page failed:", err.Error())
+	//	return
+	//}
 
-	time.Sleep(2 * time.Second)
-
-	cookies, err := page.Cookies()
-	if err != nil {
-		log.Fatalln("get cookies failed:", err.Error())
-		return
-	}
-
-	for _, cookie := range cookies {
-		fmt.Printf("%s=%s; domain=%s; path=%s\n", cookie.Name, cookie.Value, cookie.Domain, cookie.Path)
-	}
-
-	err = page.Close()
-	if err != nil {
-		return
-	}
+	//time.Sleep(2 * time.Second)
+	//
+	//cookies, err := page.Cookies()
+	//if err != nil {
+	//	log.Fatalln("get cookies failed:", err.Error())
+	//	return
+	//}
+	//
+	//for _, cookie := range cookies {
+	//	fmt.Printf("%s=%s; domain=%s; path=%s\n", cookie.Name, cookie.Value, cookie.Domain, cookie.Path)
+	//}
+	//
+	//err = page.Close()
+	//if err != nil {
+	//	return
+	//}
 
 }
 

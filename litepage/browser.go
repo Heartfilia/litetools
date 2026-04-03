@@ -91,6 +91,9 @@ func CreateBrowser(browser *Browser) *Browser {
 
 func (b *Browser) ensureRunning(ctx context.Context) error {
 	if b.isReachable(ctx) {
+		if b.options != nil && b.options.hasLaunchSpecificSettings() {
+			return fmt.Errorf("browser already running at %s; proxy/headless/extensions and other launch-only settings only take effect when launching a new browser", b.Addr)
+		}
 		return b.waitUntilAttachable(ctx)
 	}
 	if err := b.launch(ctx); err != nil {

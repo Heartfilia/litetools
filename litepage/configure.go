@@ -186,6 +186,7 @@ func (c *ChromiumOptions) SetHeadless(headless bool) *ChromiumOptions {
 }
 
 func (c *ChromiumOptions) SetProxy(proxy string) *ChromiumOptions {
+	// 不支持账号密码的配置 并且每次都需要从头启动浏览器才有效果哦
 	c.proxy = proxy
 	if proxy == "" {
 		return c.RemoveArgument("--proxy-server")
@@ -306,6 +307,20 @@ func (c *ChromiumOptions) validate() error {
 		return errors.New("retry interval must be >= 0")
 	}
 	return nil
+}
+
+func (c *ChromiumOptions) hasLaunchSpecificSettings() bool {
+	if c == nil {
+		return false
+	}
+	return c.proxy != "" ||
+		c.headless ||
+		c.browserPath != "" ||
+		c.userDataPath != "" ||
+		c.downloadPath != "" ||
+		c.tmpPath != "" ||
+		len(c.extensions) > 0 ||
+		len(c.arguments) > 0
 }
 
 func normalizeDebugAddress(address string) string {
