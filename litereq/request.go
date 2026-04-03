@@ -90,9 +90,13 @@ func (b *Builder) Param(key string, values ...string) *Builder {
 }
 
 func (b *Builder) Params(paramString string) *Builder {
-	params := litestr.ParamStringToArray(paramString)
-	for _, ps := range params {
-		b.ub.Param(ps[0], ps[1])
+	params, err := normalizeParams(paramString)
+	if err != nil {
+		b.log("params", err)
+		return b
+	}
+	for key, values := range params {
+		b.ub.Param(key, values...)
 	}
 	return b
 }

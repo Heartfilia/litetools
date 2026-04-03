@@ -52,6 +52,8 @@ func (ub *urlBuilder) Clone() *urlBuilder {
 	ub2 := *ub
 	Clip(&ub2.paths)
 	Clip(&ub2.params)
+	Clip(&ub2.footParams)
+	Clip(&ub2.godParams)
 	return &ub2
 }
 
@@ -73,13 +75,17 @@ func (ub *urlBuilder) URL() (u *url.URL, err error) {
 	q := u.Query()
 	if len(ub.params) > 0 {
 		for _, kv := range ub.params {
-			q[kv.key] = kv.values
+			for _, value := range kv.values {
+				q.Add(kv.key, value)
+			}
 		}
 	}
 	f := make(url.Values)
 	if len(ub.footParams) > 0 {
 		for _, kv := range ub.footParams {
-			f[kv.key] = kv.values
+			for _, value := range kv.values {
+				f.Add(kv.key, value)
+			}
 		}
 	}
 	u.RawQuery = combineQuery(encode(q), encode(f))
@@ -92,7 +98,6 @@ func (ub *urlBuilder) URL() (u *url.URL, err error) {
 }
 
 func encode(v url.Values) string {
-	v.Encode()
 	if v == nil {
 		return ""
 	}
@@ -130,7 +135,7 @@ func combineQuery(s ...string) string {
 	if len(s) > 0 {
 		for i, qs := range s {
 			q.WriteString(qs)
-			if i < len(s) {
+			if i < len(s)-1 {
 				q.WriteString("&")
 			}
 		}
