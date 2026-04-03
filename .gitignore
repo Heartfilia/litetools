@@ -1,0 +1,36 @@
+# IDE/editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Go build/test outputs
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.out
+cover.out
+*.coverprofile
+
+# Go workspace artifacts
+bin/
+dist/
+build/
+
+# Local env/secrets
+.env
+.env.*
+!.env.example
+
+# Project-local scratch files
+test.py
+test.go
